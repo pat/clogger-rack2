@@ -54,7 +54,8 @@ enum clogger_special {
 	CL_SP_request_length,
 	CL_SP_response_length,
 	CL_SP_ip,
-	CL_SP_pid
+	CL_SP_pid,
+	CL_SP_request_uri,
 };
 
 struct clogger {
@@ -92,6 +93,7 @@ static VALUE g_HTTP_X_FORWARDED_FOR;
 static VALUE g_REMOTE_ADDR;
 static VALUE g_REQUEST_METHOD;
 static VALUE g_PATH_INFO;
+static VALUE g_REQUEST_URI;
 static VALUE g_QUERY_STRING;
 static VALUE g_HTTP_VERSION;
 static VALUE g_rack_errors;
@@ -410,30 +412,44 @@ static void append_time_fmt(struct clogger *c, const VALUE *op)
 	append_tv(c, op, &now);
 }
 
+static void append_request_uri(struct clogger *c)
+{
+	VALUE tmp;
+
+	tmp = rb_hash_aref(c->env, g_REQUEST_URI);
+	if (NIL_P(tmp)) {
+		tmp = rb_hash_aref(c->env, g_PATH_INFO);
+		if (!NIL_P(tmp))
+			rb_str_buf_append(c->log_buf, byte_xs(tmp));
+		tmp = rb_hash_aref(c->env, g_QUERY_STRING);
+		if (!NIL_P(tmp) && RSTRING_LEN(tmp) != 0) {
+			rb_str_buf_append(c->log_buf, g_question_mark);
+			rb_str_buf_append(c->log_buf, byte_xs(tmp));
+		}
+	} else {
+		rb_str_buf_append(c->log_buf, byte_xs(tmp));
+	}
+}
+
 static void append_request(struct clogger *c)
 {
 	VALUE tmp;
-	VALUE env = c->env;
 
 	/* REQUEST_METHOD doesn't need escaping, Rack::Lint governs it */
-	tmp = rb_hash_aref(env, g_REQUEST_METHOD);
-	rb_str_buf_append(c->log_buf, NIL_P(tmp) ? g_empty : tmp);
+	tmp = rb_hash_aref(c->env, g_REQUEST_METHOD);
+	if (!NIL_P(tmp))
+		rb_str_buf_append(c->log_buf, tmp);
+
 	rb_str_buf_append(c->log_buf, g_space);
 
-	/* broken clients can send " and other questionable URIs */
-	tmp = rb_hash_aref(env, g_PATH_INFO);
-	rb_str_buf_append(c->log_buf, NIL_P(tmp) ? g_empty : byte_xs(tmp));
+	append_request_uri(c);
 
-	tmp = rb_hash_aref(env, g_QUERY_STRING);
-	if (RSTRING_LEN(tmp) != 0) {
-		rb_str_buf_append(c->log_buf, g_question_mark);
-		rb_str_buf_append(c->log_buf, byte_xs(tmp));
-	}
 	rb_str_buf_append(c->log_buf, g_space);
 
 	/* HTTP_VERSION can be injected by malicious clients */
-	tmp = rb_hash_aref(env, g_HTTP_VERSION);
-	rb_str_buf_append(c->log_buf, NIL_P(tmp) ? g_empty : byte_xs(tmp));
+	tmp = rb_hash_aref(c->env, g_HTTP_VERSION);
+	if (!NIL_P(tmp))
+		rb_str_buf_append(c->log_buf, byte_xs(tmp));
 }
 
 static void append_request_length(struct clogger *c)
@@ -538,6 +554,9 @@ static void special_var(struct clogger *c, enum clogger_special var)
 		break;
 	case CL_SP_pid:
 		append_pid(c);
+                break;
+	case CL_SP_request_uri:
+		append_request_uri(c);
 	}
 }
 
@@ -788,6 +807,7 @@ void Init_clogger_ext(void)
 	CONST_GLOBAL_STR(REQUEST_METHOD);
 	CONST_GLOBAL_STR(PATH_INFO);
 	CONST_GLOBAL_STR(QUERY_STRING);
+	CONST_GLOBAL_STR(REQUEST_URI);
 	CONST_GLOBAL_STR(HTTP_VERSION);
 	CONST_GLOBAL_STR2(rack_errors, "rack.errors");
 	CONST_GLOBAL_STR2(rack_input, "rack.input");

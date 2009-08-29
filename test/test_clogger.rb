@@ -333,6 +333,22 @@ class TestClogger < Test::Unit::TestCase
     assert_equal expect, str.string
   end
 
+  def test_request_uri_fallback
+    str = StringIO.new
+    app = lambda { |env| [ 200, {}, [] ] }
+    cl = Clogger.new(app, :logger => str, :format => '$request_uri')
+    status, headers, body = cl.call(@req)
+    assert_equal "/hello?goodbye=true\n", str.string
+  end
+
+  def test_request_uri_set
+    str = StringIO.new
+    app = lambda { |env| [ 200, {}, [] ] }
+    cl = Clogger.new(app, :logger => str, :format => '$request_uri')
+    status, headers, body = cl.call(@req.merge("REQUEST_URI" => '/zzz'))
+    assert_equal "/zzz\n", str.string
+  end
+
   def test_cookies
     str = StringIO.new
     app = lambda { |env|

@@ -29,6 +29,7 @@ class Clogger
     :response_length => 4, # like body_bytes_sent, except "-" instead of "0"
     :ip => 5, # HTTP_X_FORWARDED_FOR || REMOTE_ADDR || -
     :pid => 6, # getpid()
+    :request_uri => 7
   }
 
 private

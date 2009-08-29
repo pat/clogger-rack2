@@ -63,6 +63,13 @@ private
 
   SPECIAL_RMAP = SPECIAL_VARS.inject([]) { |ary, (k,v)| ary[v] = k; ary }
 
+  def request_uri(env)
+    ru = env['REQUEST_URI'] and return byte_xs(ru)
+    qs = env['QUERY_STRING']
+    qs.empty? or qs = "?#{byte_xs(qs)}"
+    "#{byte_xs(env['PATH_INFO'])}#{qs}"
+  end
+
   def special_var(special_nr, env, status, headers)
     case SPECIAL_RMAP[special_nr]
     when :body_bytes_sent
@@ -74,8 +81,10 @@ private
       qs = env['QUERY_STRING']
       qs.empty? or qs = "?#{byte_xs(qs)}"
       "#{env['REQUEST_METHOD']} " \
-        "#{byte_xs(env['PATH_INFO'])}#{qs} " \
+        "#{request_uri(env)} " \
         "#{byte_xs(env['HTTP_VERSION'])}"
+    when :request_uri
+      request_uri(env)
     when :request_length
       env['rack.input'].size.to_s
     when :response_length
