@@ -248,7 +248,13 @@ static void clogger_mark(void *ptr)
 {
 	struct clogger *c = ptr;
 
-	rb_gc_mark_locations(&c->app, &c->response);
+	rb_gc_mark(c->app);
+	rb_gc_mark(c->fmt_ops);
+	rb_gc_mark(c->logger);
+	rb_gc_mark(c->log_buf);
+	rb_gc_mark(c->env);
+	rb_gc_mark(c->cookies);
+	rb_gc_mark(c->response);
 }
 
 static VALUE clogger_alloc(VALUE klass)
