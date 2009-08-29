@@ -1,0 +1,13 @@
+Makefile
+*.log
+*.rbc
+*.so
+*.o
+*.a
+*.bundle
+.DS_Store
+/.config
+/InstalledFiles
+/doc
+/local.mk
+/pkg
