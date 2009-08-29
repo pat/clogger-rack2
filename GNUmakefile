@@ -44,10 +44,11 @@ release_changes := release_changes-$(VERSION).txt
 $(release_changes): verify
 	git diff --stat $(vPREV) v$(VERSION) > $@+
 	echo >> $@+
-	git log $(vPREV) v$(VERSION) >> $@+
+	git log $(vPREV)..v$(VERSION) >> $@+
 	$(VISUAL) $@+ && test -s $@+ && mv $@+ $@
 $(release_notes): verify package
 	gem spec pkg/clogger-$(VERSION).gem description | sed -ne '/\w/p' > $@+
+	echo >> $@+
 	git cat-file tag v$(VERSION) | awk 'p>1{print $$0}/^$$/{++p}' >> $@+
 	$(VISUAL) $@+ && test -s $@+ && mv $@+ $@
 verify:
@@ -65,11 +66,11 @@ package: verify
 
 # not using Hoe's release system since we release 2 gems but only one tgz
 release: package Manifest.txt $(release_notes) $(release_changes)
-	rubyforge add_release -f -n $(release_notes) -c $(release_changes) \
+	rubyforge add_release -f -n $(release_notes) -a $(release_changes) \
 	  clogger clogger $(VERSION) pkg/clogger-$(VERSION).gem
 	rubyforge add_file \
 	  clogger clogger $(VERSION) pkg/clogger-$(VERSION).tgz
-	rubyforge add_release -f -n $(release_notes) -c $(release_changes) \
+	rubyforge add_release -f -n $(release_notes) -a $(release_changes) \
 	  clogger clogger_ext $(VERSION) pkg/clogger_ext-$(VERSION).gem
 endif
 
