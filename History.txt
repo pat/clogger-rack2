@@ -1,3 +1,11 @@
+=== 0.0.3 / 2009-08-29
+
+    The MRI extension clogger_ext gets GC bug fix and
+    cleanups/robustness improvements.  It should now be more
+    tolerant of misbehaving applications in that it'll be less
+    likely to segfault.  No changes to the (recommended) pure
+    implementation.
+
 === 0.0.2 / 2009-08-29
 
 * 2 bug fixes
