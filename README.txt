@@ -2,8 +2,6 @@
 
 * http://clogger.rubyforge.org/
 * mailto:clogger@librelist.com
-* git://rubyforge.org/clogger.git
-* http://clogger.rubyforge.org/git?p=clogger.git
 
 == DESCRIPTION
 
@@ -12,10 +10,10 @@ is customizable so you can specify exactly which fields to log.
 
 == FEATURES
 
+* highly customizable with easy-to-read nginx-like log format variables.
+
 * pre-defines Apache Common Log Format, Apache Combined Log Format and
   Rack::CommonLogger (as distributed by Rack 1.0) formats.
-
-* highly customizable with easy-to-read nginx-like log formatting variables.
 
 * Untrusted values are escaped (all HTTP headers, request URI components)
   to make life easier for HTTP log parsers. The following bytes are escaped:
@@ -76,25 +74,45 @@ somewhere inside the "Rails::Initializer.run do |config|" block:
 
 * Ruby, Rack
 
+== DEVELOPMENT
+
+The latest development happens in git and is published to the following:
+
+   git://rubyforge.org/clogger.git
+   git://git.bogomips.org/mirrors/clogger.git
+
+You may also browse and download snapshot tarballs:
+
+* http://clogger.rubyforge.org/git?p=clogger.git (gitweb)
+* http://git.bogomips.org/cgit/mirrors/clogger.git (cgit)
+
+The mailing list (see below) is central for coordination and
+development.  Patches should always be sent inline
+(git format-patch -M + git send-email) so we can reply to them inline.
+
 == CONTACT
 
 All feedback (bug reports, user/development dicussion, patches, pull
-requests) should go to the mailing list.  Patches should be sent inline
-(git format-patch -M + git send-email) so we can reply to them inline.
+requests) go to the mailing list.
 
 * mailto:clogger@librelist.com
 
-== INSTALL:
+Do not send HTML mail or attachments.  Do not top post.
 
-For Rubygems users:
+== INSTALL
+
+For all Rubygems users:
 
   gem install clogger
 
-If you're using MRI 1.8 or 1.9 and have a build environment, you can also try:
+If you're using MRI 1.8/1.9 and have a build environment, you can also try:
 
   gem install clogger_ext
 
-A setup.rb file is also included if you do not use Rubygems.
+If you do not use Rubygems, you may also use setup.rb from tarballs from
+the Rubyforge project page:
+
+* http://rubyforge.org/frs/?group_id=8896
 
 == LICENSE
 
