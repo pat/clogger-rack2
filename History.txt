@@ -1,3 +1,10 @@
+=== 0.0.2 / 2009-08-29
+
+* 2 bug fixes
+
+   * support "$request_uri" as a log variable
+   * Log bad/invalid app responses as 500 errors
+
 === 0.0.1 / 2009-08-28
 
 * 1 major enhancement
