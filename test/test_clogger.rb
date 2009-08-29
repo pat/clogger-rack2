@@ -362,4 +362,15 @@ class TestClogger < Test::Unit::TestCase
     status, headers, body = cl.call(req)
     assert_equal "bar h&m\n", str.string
   end
+
+  def test_bogus_app_response
+    str = StringIO.new
+    app = lambda { |env| 302 }
+    cl = Clogger.new(app, :logger => str)
+    assert_raise(TypeError) { cl.call(@req) }
+    str = str.string
+    e = Regexp.quote " \"GET /hello?goodbye=true HTTP/1.0\" 500 -"
+    assert_match %r{#{e}$}m, str
+  end
+
 end

@@ -16,7 +16,12 @@ class Clogger
 
   def call(env)
     @start = Time.now
-    status, headers, body = @app.call(env)
+    resp = @app.call(env)
+    unless resp.instance_of?(Array) && resp.size == 3
+      log(env, 500, {})
+      raise TypeError, "app response not a 3 element Array: #{resp.inspect}"
+    end
+    status, headers, body = resp
     if wrap_body?
       @reentrant = env['rack.multithread']
       @env, @status, @headers, @body = env, status, headers, body

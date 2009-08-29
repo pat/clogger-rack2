@@ -104,6 +104,7 @@ static VALUE g_empty;
 static VALUE g_space;
 static VALUE g_question_mark;
 static VALUE g_rack_request_cookie_hash;
+static VALUE g_bad_app_response;
 
 #define LOG_BUF_INIT_SIZE 128
 
@@ -722,10 +723,21 @@ static VALUE clogger_fileno(VALUE self)
 
 static void ccall(struct clogger *c, VALUE env)
 {
+	VALUE rv;
+
 	gettimeofday(&c->tv_start, NULL);
 	c->env = env;
 	c->cookies = Qfalse;
-	c->response = rb_funcall(c->app, call_id, 1, env);
+	rv = rb_funcall(c->app, call_id, 1, env);
+	if (TYPE(rv) == T_ARRAY && RARRAY_LEN(rv) == 3) {
+		c->response = rv;
+	} else {
+		c->response = g_bad_app_response;
+		cwrite(c);
+		rb_raise(rb_eTypeError,
+		         "app response not a 3 element Array: %s",
+			 RSTRING_PTR(rb_inspect(rv)));
+	}
 }
 
 /*
@@ -782,6 +794,16 @@ static VALUE clogger_init_copy(VALUE clone, VALUE orig)
 
 #define CONST_GLOBAL_STR(val) CONST_GLOBAL_STR2(val, #val)
 
+static void init_bad_response(void)
+{
+	g_bad_app_response = rb_ary_new();
+	rb_ary_store(g_bad_app_response, 0, INT2NUM(500));
+	rb_ary_store(g_bad_app_response, 1, rb_obj_freeze(rb_hash_new()));
+	rb_ary_store(g_bad_app_response, 2, rb_obj_freeze(rb_ary_new()));
+	rb_obj_freeze(g_bad_app_response);
+	rb_global_variable(&g_bad_app_response);
+}
+
 void Init_clogger_ext(void)
 {
 	ltlt_id = rb_intern("<<");
@@ -817,4 +839,5 @@ void Init_clogger_ext(void)
 	CONST_GLOBAL_STR2(space, " ");
 	CONST_GLOBAL_STR2(question_mark, "?");
 	CONST_GLOBAL_STR2(rack_request_cookie_hash, "rack.request.cookie_hash");
+	init_bad_response();
 }
