@@ -188,7 +188,7 @@ struct response_ops { long nr; VALUE ops; };
 static VALUE swap_sent_headers(VALUE kv, VALUE memo)
 {
 	struct response_ops *tmp = (struct response_ops *)memo;
-	VALUE key = RARRAY_PTR(kv)[0];
+	VALUE key = rb_obj_as_string(RARRAY_PTR(kv)[0]);
 	long i = RARRAY_LEN(tmp->ops);
 	VALUE *ary = RARRAY_PTR(tmp->ops);
 	VALUE value;
@@ -337,10 +337,11 @@ static VALUE clogger_wrap_body(VALUE self)
 	return clogger_get(self)->wrap_body == 0 ? Qfalse : Qtrue;
 }
 
-static void append_status(struct clogger *c, VALUE status)
+static void append_status(struct clogger *c)
 {
 	char buf[sizeof("999")];
 	int nr;
+	VALUE status = RARRAY_PTR(c->response)[0];
 
 	if (TYPE(status) != T_FIXNUM) {
 		status = rb_funcall(status, to_i_id, 0);
@@ -542,7 +543,7 @@ static void special_var(struct clogger *c, enum clogger_special var)
 		append_body_bytes_sent(c);
 		break;
 	case CL_SP_status:
-		append_status(c, RARRAY_PTR(c->response)[0]);
+		append_status(c);
 		break;
 	case CL_SP_request:
 		append_request(c);
@@ -673,6 +674,7 @@ static VALUE body_iter_i(VALUE str, VALUE memop)
 {
 	off_t *len = (off_t *)memop;
 
+	str = rb_obj_as_string(str);
 	*len += RSTRING_LEN(str);
 
 	return rb_yield(str);
@@ -682,7 +684,6 @@ static VALUE wrap_each(struct clogger *c)
 {
 	VALUE body = RARRAY_PTR(c->response)[2];
 
-	rb_need_block();
 	c->body_bytes_sent = 0;
 	rb_iterate(rb_each, body, body_iter_i, (VALUE)&c->body_bytes_sent);
 
@@ -700,6 +701,8 @@ static VALUE wrap_each(struct clogger *c)
 static VALUE clogger_each(VALUE self)
 {
 	struct clogger *c = clogger_get(self);
+
+	rb_need_block();
 
 	return rb_ensure(wrap_each, (VALUE)c, cwrite, (VALUE)c);
 }
