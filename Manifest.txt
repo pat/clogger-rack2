@@ -5,10 +5,6 @@ History.txt
 Manifest.txt
 README.txt
 Rakefile
-benchmarks/rack_common_logger_0_9_1.rb
-benchmarks/rack_common_logger_1_0_0.rb
-benchmarks/rack_common_logger_ew.rb
-benchmarks/test_run.rb
 ext/clogger_ext/clogger.c
 ext/clogger_ext/extconf.rb
 ext/clogger_ext/ruby_1_9_compat.h
