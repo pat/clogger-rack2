@@ -333,6 +333,18 @@ class TestClogger < Test::Unit::TestCase
     assert_equal expect, str.string
   end
 
+  # rack allows repeated headers with "\n":
+  # { 'Set-Cookie' => "a\nb" } =>
+  #   Set-Cookie: a
+  #   Set-Cookie: b
+  def test_escape_header_newlines
+    str = StringIO.new
+    app = lambda { |env| [302, { 'Set-Cookie' => "a\nb" }, [] ] }
+    cl = Clogger.new(app, :logger => str, :format => '$sent_http_set_cookie')
+    cl.call(@req)
+    assert_equal "a\\x0Ab\n", str.string
+  end
+
   def test_request_uri_fallback
     str = StringIO.new
     app = lambda { |env| [ 200, {}, [] ] }
