@@ -185,7 +185,7 @@ static int str_case_eq(VALUE a, VALUE b)
 struct response_ops { long nr; VALUE ops; };
 
 /* this can be worse than O(M*N) :<... but C loops are fast ... */
-static VALUE swap_sent_headers(VALUE kv, VALUE memo)
+static VALUE swap_sent_headers_unsafe(VALUE kv, VALUE memo)
 {
 	struct response_ops *tmp = (struct response_ops *)memo;
 	VALUE key = rb_obj_as_string(RARRAY_PTR(kv)[0]);
@@ -212,6 +212,15 @@ static VALUE swap_sent_headers(VALUE kv, VALUE memo)
 		return Qnil;
 	}
 	return Qnil;
+}
+
+static VALUE swap_sent_headers(VALUE kv, VALUE memo)
+{
+	if (TYPE(kv) != T_ARRAY)
+		rb_raise(rb_eTypeError, "headers not returning pairs");
+	if (RARRAY_LEN(kv) < 2)
+		rb_raise(rb_eTypeError, "headers not returning pairs");
+	return swap_sent_headers_unsafe(kv, memo);
 }
 
 static VALUE sent_headers_ops(struct clogger *c)

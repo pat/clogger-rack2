@@ -373,4 +373,11 @@ class TestClogger < Test::Unit::TestCase
     assert_match %r{#{e}$}m, str
   end
 
+  def test_broken_header_response
+    str = StringIO.new
+    app = lambda { |env| [302, [ %w(a) ], []] }
+    cl = Clogger.new(app, :logger => str, :format => '$sent_http_set_cookie')
+    assert_raise(TypeError) { cl.call(@req) }
+  end
+
 end

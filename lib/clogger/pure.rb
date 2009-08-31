@@ -133,7 +133,12 @@ private
   end
 
   def get_sent_header(headers, match)
-    headers.each { |key, value| match == key.downcase and return value }
+    headers.each do |pair|
+      Array === pair && pair.size >= 2 or
+        raise TypeError, "headers not returning pairs"
+      key, value = pair
+      match == key.downcase and return value
+    end
     "-"
   end
 
