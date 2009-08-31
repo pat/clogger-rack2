@@ -55,7 +55,7 @@ enum clogger_special {
 	CL_SP_response_length,
 	CL_SP_ip,
 	CL_SP_pid,
-	CL_SP_request_uri,
+	CL_SP_request_uri
 };
 
 struct clogger {
