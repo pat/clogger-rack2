@@ -72,6 +72,7 @@ release: package Manifest.txt $(release_notes) $(release_changes)
 	  clogger clogger $(VERSION) pkg/clogger-$(VERSION).tgz
 	rubyforge add_release -f -n $(release_notes) -a $(release_changes) \
 	  clogger clogger_ext $(VERSION) pkg/clogger_ext-$(VERSION).gem
+	rake post_news
 endif
 
 .PHONY: test doc Manifest.txt release
