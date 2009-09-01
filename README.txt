@@ -78,13 +78,13 @@ somewhere inside the "Rails::Initializer.run do |config|" block:
 
 The latest development happens in git and is published to the following:
 
+   git://git.bogomips.org/clogger.git
    git://rubyforge.org/clogger.git
-   git://git.bogomips.org/mirrors/clogger.git
 
 You may also browse and download snapshot tarballs:
 
+* http://git.bogomips.org/cgit/clogger.git (cgit)
 * http://clogger.rubyforge.org/git?p=clogger.git (gitweb)
-* http://git.bogomips.org/cgit/mirrors/clogger.git (cgit)
 
 The mailing list (see below) is central for coordination and
 development.  Patches should always be sent inline
