@@ -461,12 +461,12 @@ static void append_request(struct clogger *c)
 
 	append_request_uri(c);
 
-	rb_str_buf_append(c->log_buf, g_space);
-
 	/* HTTP_VERSION can be injected by malicious clients */
 	tmp = rb_hash_aref(c->env, g_HTTP_VERSION);
-	if (!NIL_P(tmp))
+	if (!NIL_P(tmp)) {
+		rb_str_buf_append(c->log_buf, g_space);
 		rb_str_buf_append(c->log_buf, byte_xs(tmp));
+	}
 }
 
 static void append_request_length(struct clogger *c)

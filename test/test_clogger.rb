@@ -392,4 +392,14 @@ class TestClogger < Test::Unit::TestCase
     assert_raise(TypeError) { cl.call(@req) }
   end
 
+  def test_http_09_request
+    str = StringIO.new
+    app = lambda { |env| [302, [ %w(a) ], []] }
+    cl = Clogger.new(app, :logger => str, :format => '$request')
+    req = @req.dup
+    req.delete 'HTTP_VERSION'
+    cl.call(req)
+    assert_equal "GET /hello?goodbye=true\n", str.string
+  end
+
 end

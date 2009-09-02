@@ -83,11 +83,11 @@ private
       status = status.to_i
       status >= 100 && status <= 999 ? ('%03d' % status) : '-'
     when :request
+      version = env['HTTP_VERSION'] and version = " #{byte_xs(version)}"
       qs = env['QUERY_STRING']
       qs.empty? or qs = "?#{byte_xs(qs)}"
       "#{env['REQUEST_METHOD']} " \
-        "#{request_uri(env)} " \
-        "#{byte_xs(env['HTTP_VERSION'])}"
+        "#{request_uri(env)}#{version}"
     when :request_uri
       request_uri(env)
     when :request_length
