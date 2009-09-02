@@ -1,3 +1,19 @@
+=== 0.0.4 / 2009-09-02
+
+    The pure Ruby version now escapes with uppercase A-F
+    characters to match nginx log output.  There are now extra
+    checks against badly behaving Rack applications and 500
+    errors will be logged before TypeError is raised if the
+    application response does not conform (minimally) to Rack
+    expectations.  Finally, handling of $request (requests
+    without "HTTP_VERSION" set in the Rack env) should now be
+    logged correctly without unnecessary trailing characters.
+
+    Hackers: the primary git repository has been moved to
+    git://git.bogomips.org/clogger.git for now since I'm having
+    issues with pushing to Rubyforge (seems related to Support
+    Requests item #26185).
+
 === 0.0.3 / 2009-08-29
 
     The MRI extension clogger_ext gets GC bug fix and
