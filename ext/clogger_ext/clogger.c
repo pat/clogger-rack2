@@ -287,6 +287,11 @@ static VALUE obj_fileno(VALUE obj)
 	return rb_funcall(obj, rb_intern("fileno"), 0);
 }
 
+static VALUE obj_enable_sync(VALUE obj)
+{
+	return rb_funcall(obj, rb_intern("sync="), 1, Qtrue);
+}
+
 /* only for writing to regular files, not stupid crap like NFS  */
 static void write_full(int fd, const void *buf, size_t count)
 {
@@ -658,8 +663,10 @@ static VALUE clogger_init(int argc, VALUE *argv, VALUE self)
 		VALUE tmp;
 
 		c->logger = rb_hash_aref(o, ID2SYM(rb_intern("logger")));
-		if (!NIL_P(c->logger))
+		if (!NIL_P(c->logger)) {
+			rb_rescue(obj_enable_sync, c->logger, 0, 0);
 			c->fd = raw_fd(rb_rescue(obj_fileno, c->logger, 0, 0));
+		}
 
 		tmp = rb_hash_aref(o, ID2SYM(rb_intern("format")));
 		if (!NIL_P(tmp))

@@ -434,4 +434,23 @@ class TestClogger < Test::Unit::TestCase
     assert_equal "text/plain\n", str.string
   end
 
+  def test_clogger_synced
+    io = StringIO.new
+    logger = Struct.new(:sync, :io).new(false, io)
+    assert ! logger.sync
+    def logger.<<(str)
+      io << str
+    end
+    app = lambda { |env| [302, [ %w(a) ], []] }
+    cl = Clogger.new(app, :logger => logger)
+    assert logger.sync
+  end
+
+  def test_clogger_unsyncable
+    logger = ''
+    assert ! logger.respond_to?('sync=')
+    app = lambda { |env| [302, [ %w(a) ], []] }
+    assert_nothing_raised { Clogger.new(app, :logger => logger) }
+  end
+
 end

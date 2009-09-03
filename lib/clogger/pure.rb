@@ -8,6 +8,7 @@ class Clogger
   def initialize(app, opts = {})
     @app = app
     @logger = opts[:logger]
+    (@logger.sync = true) rescue nil
     @fmt_ops = compile_format(opts[:format] || Format::Common)
     @wrap_body = need_wrap_body?(@fmt_ops)
     @reentrant = nil
