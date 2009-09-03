@@ -1,3 +1,12 @@
+=== 0.0.5 / 2009-09-02
+
+   The following variables are now exposed: $request_method,
+   $content_length and $content_type.  Additionally, attempts
+   to use $http_content_length or $http_content_type will be
+   remapped to use the non-"$http_"-prefixed variable instead
+   since the "$http_"-variants of those variables is not allowed
+   by Rack.
+
 === 0.0.4 / 2009-09-02
 
     The pure Ruby version now escapes with uppercase A-F
