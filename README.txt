@@ -14,13 +14,14 @@ is customizable so you can specify exactly which fields to log.
 
 * pre-defines Apache Common Log Format, Apache Combined Log Format and
   Rack::CommonLogger (as distributed by Rack 1.0) formats.
+  See Clogger::Format for the predefined formats.
 
 * Untrusted values are escaped (all HTTP headers, request URI components)
   to make life easier for HTTP log parsers. The following bytes are escaped:
 
     ' (single quote)
     " (double quote)
-    all bytes in the range of \x00-\x1f
+    all bytes in the range of \x00-\x1F
 
 == SYNOPSIS
 
@@ -58,8 +59,8 @@ somewhere inside the "Rails::Initializer.run do |config|" block:
   ($request_method $request_uri $http_version)
 * $request_time, $request_time{PRECISION} - time taken for request
   (including response body iteration).  PRECISION defaults to 3
-  (milliseconds) if not specified but may be specified 0(seconds) to
-  6(microseconds).
+  (milliseconds) if not specified but may be specified anywhere from
+  0(seconds) to 6(microseconds).
 * $time_local, $time_local{FORMAT} - current local time, FORMAT defaults to
   "%d/%b/%Y:%H:%M:%S %z" but accepts any strftime(3)-compatible format
 * $time_utc, $time_utc{FORMAT} - like $time_local, except with UTC
