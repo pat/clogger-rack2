@@ -402,4 +402,12 @@ class TestClogger < Test::Unit::TestCase
     assert_equal "GET /hello?goodbye=true\n", str.string
   end
 
+  def test_request_method_only
+    str = StringIO.new
+    app = lambda { |env| [302, [ %w(a) ], []] }
+    cl = Clogger.new(app, :logger => str, :format => '$request_method')
+    cl.call(@req)
+    assert_equal "GET\n", str.string
+  end
+
 end

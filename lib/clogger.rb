@@ -35,7 +35,8 @@ class Clogger
 private
 
   CGI_ENV = Regexp.new('\A\$(' <<
-      %w(remote_addr remote_ident remote_user
+      %w(request_method
+         remote_addr remote_ident remote_user
          path_info query_string script_name
          server_name server_port).join('|') << ')\z').freeze
 
