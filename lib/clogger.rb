@@ -19,6 +19,8 @@ class Clogger
     '$time_local' => '$time_local{%d/%b/%Y:%H:%M:%S %z}',
     '$msec' => '$time{3}',
     '$usec' => '$time{6}',
+    '$http_content_length' => '$content_length',
+    '$http_content_type' => '$content_type',
   }
 
   SPECIAL_VARS = {

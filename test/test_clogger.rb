@@ -426,4 +426,12 @@ class TestClogger < Test::Unit::TestCase
     assert_equal "5\n", str.string
   end
 
+  def test_http_content_type_fallback
+    str = StringIO.new
+    app = lambda { |env| [302, [ %w(a) ], []] }
+    cl = Clogger.new(app, :logger => str, :format => '$http_content_type')
+    cl.call(@req.merge('CONTENT_TYPE' => 'text/plain'))
+    assert_equal "text/plain\n", str.string
+  end
+
 end
