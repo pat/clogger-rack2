@@ -410,4 +410,20 @@ class TestClogger < Test::Unit::TestCase
     assert_equal "GET\n", str.string
   end
 
+  def test_content_length_null
+    str = StringIO.new
+    app = lambda { |env| [302, [ %w(a) ], []] }
+    cl = Clogger.new(app, :logger => str, :format => '$content_length')
+    cl.call(@req)
+    assert_equal "-\n", str.string
+  end
+
+  def test_content_length_set
+    str = StringIO.new
+    app = lambda { |env| [302, [ %w(a) ], []] }
+    cl = Clogger.new(app, :logger => str, :format => '$content_length')
+    cl.call(@req.merge('CONTENT_LENGTH' => '5'))
+    assert_equal "5\n", str.string
+  end
+
 end

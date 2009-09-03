@@ -43,6 +43,10 @@ somewhere inside the "Rails::Initializer.run do |config|" block:
 
 * $http_* - HTTP request headers (e.g. $http_user_agent)
 * $sent_http_* - HTTP response headers (e.g. $sent_http_content_length)
+* $content_length - HTTP request body size
+  ($http_content_length is not allowed by Rack)
+* $content_type - HTTP request content type
+  ($http_content_type is not allowed by Rack)
 * $cookie_* - HTTP request cookie (e.g. $cookie_session_id)
   Rack::Request#cookies must have been used by the underlying application
   to parse the cookies into a hash.
