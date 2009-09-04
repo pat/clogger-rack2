@@ -25,7 +25,7 @@ test-ext: ext/clogger_ext/clogger.$(DLEXT)
 	$(ruby) -Iext/clogger_ext:lib test/test_clogger.rb
 
 test-pure:
-	$(ruby) -Ilib test/test_clogger.rb
+	CLOGGER_PURE=t $(ruby) -Ilib test/test_clogger.rb
 
 test: test-ext test-pure
 
