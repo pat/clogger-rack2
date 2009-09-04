@@ -40,7 +40,9 @@ private
       %w(request_method content_length content_type
          remote_addr remote_ident remote_user
          path_info query_string script_name
-         server_name server_port).join('|') << ')\z').freeze
+         server_name server_port
+         auth_type gateway_interface server_software path_translated
+         ).join('|') << ')\z').freeze
 
   SCAN = /([^$]*)(\$+(?:env\{\w+(?:\.[\w\.]+)?\}|
                         e\{[^\}]+\}|
