@@ -674,7 +674,7 @@ static VALUE clogger_init(int argc, VALUE *argv, VALUE self)
 	}
 
 	init_buffers(c);
-	c->fmt_ops = rb_funcall(self, rb_intern("compile_format"), 1, fmt);
+	c->fmt_ops = rb_funcall(self, rb_intern("compile_format"), 2, fmt, o);
 
 	if (Qtrue == rb_funcall(self, rb_intern("need_response_headers?"),
 	                        1, c->fmt_ops))

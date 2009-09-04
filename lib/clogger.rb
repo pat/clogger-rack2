@@ -48,8 +48,9 @@ private
                         time_(?:utc|local)\{[^\}]+\}|
                         \w*))?([^$]*)/x
 
-  def compile_format(str)
+  def compile_format(str, opt = {})
     rv = []
+    opt ||= {}
     str.scan(SCAN).each do |pre,tok,post|
       rv << [ OP_LITERAL, pre ] if pre && pre != ""
 
@@ -97,8 +98,9 @@ private
     # auto-append a newline
     last = rv.last or return rv
     op = last.first
-    if (op == OP_LITERAL && /\n\z/ !~ last.last) || op != OP_LITERAL
-      rv << [ OP_LITERAL, "\n" ]
+    ors = opt[:ORS] || "\n"
+    if (op == OP_LITERAL && /#{ors}\z/ !~ last.last) || op != OP_LITERAL
+      rv << [ OP_LITERAL, ors ] if ors.size > 0
     end
 
     rv

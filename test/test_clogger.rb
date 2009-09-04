@@ -453,4 +453,20 @@ class TestClogger < Test::Unit::TestCase
     assert_nothing_raised { Clogger.new(app, :logger => logger) }
   end
 
+  def test_clogger_no_ORS
+    s = ''
+    app = lambda { |env| [302, [ %w(a) ], []] }
+    cl = Clogger.new(app, :logger => s, :format => "$request", :ORS => "")
+    cl.call(@req)
+    assert_equal "GET /hello?goodbye=true HTTP/1.0", s
+  end
+
+  def test_clogger_weird_ORS
+    s = ''
+    app = lambda { |env| [302, [ %w(a) ], []] }
+    cl = Clogger.new(app, :logger => s, :format => "<$request", :ORS => ">")
+    cl.call(@req)
+    assert_equal "<GET /hello?goodbye=true HTTP/1.0>", s
+  end
+
 end

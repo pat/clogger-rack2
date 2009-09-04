@@ -9,7 +9,7 @@ class Clogger
     @app = app
     @logger = opts[:logger]
     (@logger.sync = true) rescue nil
-    @fmt_ops = compile_format(opts[:format] || Format::Common)
+    @fmt_ops = compile_format(opts[:format] || Format::Common, opts)
     @wrap_body = need_wrap_body?(@fmt_ops)
     @reentrant = nil
     @body_bytes_sent = 0
