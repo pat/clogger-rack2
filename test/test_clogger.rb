@@ -389,7 +389,7 @@ class TestClogger < Test::Unit::TestCase
     str = StringIO.new
     app = lambda { |env| [302, [ %w(a) ], []] }
     cl = Clogger.new(app, :logger => str, :format => '$sent_http_set_cookie')
-    assert_raise(TypeError) { cl.call(@req) }
+    assert_nothing_raised { cl.call(@req) }
   end
 
   def test_http_09_request

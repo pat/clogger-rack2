@@ -87,8 +87,11 @@ static ID close_id;
 static ID to_i_id;
 static ID to_s_id;
 static ID size_id;
+static ID sq_brace_id;
+static ID new_id;
 static VALUE cClogger;
 static VALUE mFormat;
+static VALUE cHeaderHash;
 
 /* common hash lookup keys */
 static VALUE g_HTTP_X_FORWARDED_FOR;
@@ -159,98 +162,6 @@ static VALUE byte_xs(VALUE from)
 	assert(RSTRING_PTR(rv)[RSTRING_LEN(rv)] == '\0');
 
 	return rv;
-}
-
-/* strcasecmp isn't locale independent, so we roll our own */
-static int str_case_eq(VALUE a, VALUE b)
-{
-	long alen = RSTRING_LEN(a);
-	long blen = RSTRING_LEN(b);
-
-	if (alen == blen) {
-		const char *aptr = RSTRING_PTR(a);
-		const char *bptr = RSTRING_PTR(b);
-
-		for (; alen--; ++aptr, ++bptr) {
-			if ((*bptr == *aptr)
-			    || (*aptr >= 'A' && *aptr <= 'Z' &&
-			        (*aptr | 0x20) == *bptr))
-				continue;
-			return 0;
-		}
-		return 1;
-	}
-	return 0;
-}
-
-struct response_ops { long nr; VALUE ops; };
-
-/* this can be worse than O(M*N) :<... but C loops are fast ... */
-static VALUE swap_sent_headers_unsafe(VALUE kv, VALUE memo)
-{
-	struct response_ops *tmp = (struct response_ops *)memo;
-	VALUE key = rb_obj_as_string(RARRAY_PTR(kv)[0]);
-	long i = RARRAY_LEN(tmp->ops);
-	VALUE *ary = RARRAY_PTR(tmp->ops);
-	VALUE value;
-
-	for (; --i >= 0; ary++) {
-		VALUE *op = RARRAY_PTR(*ary);
-		enum clogger_opcode opcode = NUM2INT(op[0]);
-
-		if (opcode != CL_OP_RESPONSE)
-			continue;
-		assert(RARRAY_LEN(*ary) == 2);
-		if (!str_case_eq(key, op[1]))
-			continue;
-
-		value = RARRAY_PTR(kv)[1];
-		op[0] = INT2NUM(CL_OP_LITERAL);
-		op[1] = byte_xs(rb_obj_as_string(value));
-
-		if (!--tmp->nr)
-			rb_iter_break();
-		return Qnil;
-	}
-	return Qnil;
-}
-
-static VALUE swap_sent_headers(VALUE kv, VALUE memo)
-{
-	if (TYPE(kv) != T_ARRAY)
-		rb_raise(rb_eTypeError, "headers not returning pairs");
-	if (RARRAY_LEN(kv) < 2)
-		rb_raise(rb_eTypeError, "headers not returning pairs");
-	return swap_sent_headers_unsafe(kv, memo);
-}
-
-static VALUE sent_headers_ops(struct clogger *c)
-{
-	struct response_ops tmp;
-	long i, len;
-	VALUE *ary;
-
-	if (!c->need_resp)
-		return c->fmt_ops;
-
-	tmp.nr = 0;
-	tmp.ops = rb_ary_dup(c->fmt_ops);
-	len = RARRAY_LEN(tmp.ops);
-	ary = RARRAY_PTR(tmp.ops);
-
-	for (i = 0; i < len; ++i) {
-		VALUE *op = RARRAY_PTR(ary[i]);
-
-		if (NUM2INT(op[0]) == CL_OP_RESPONSE) {
-			assert(RARRAY_LEN(ary[i]) == 2);
-			ary[i] = rb_ary_dup(ary[i]);
-			++tmp.nr;
-		}
-	}
-
-	rb_iterate(rb_each, c->headers, swap_sent_headers, (VALUE)&tmp);
-
-	return tmp.ops;
 }
 
 static void clogger_mark(void *ptr)
@@ -552,6 +463,17 @@ static void append_request_env(struct clogger *c, VALUE key)
 	rb_str_buf_append(c->log_buf, tmp);
 }
 
+static void append_response(struct clogger *c, VALUE key)
+{
+	VALUE v;
+
+	assert(rb_obj_class(c->headers) == cHeaderHash);
+
+	v = rb_funcall(c->headers, sq_brace_id, 1, key);
+	v = NIL_P(v) ? g_dash : byte_xs(rb_obj_as_string(v));
+	rb_str_buf_append(c->log_buf, v);
+}
+
 static void special_var(struct clogger *c, enum clogger_special var)
 {
 	switch (var) {
@@ -586,7 +508,7 @@ static void special_var(struct clogger *c, enum clogger_special var)
 
 static VALUE cwrite(struct clogger *c)
 {
-	const VALUE ops = sent_headers_ops(c);
+	const VALUE ops = c->fmt_ops;
 	const VALUE *ary = RARRAY_PTR(ops);
 	long i = RARRAY_LEN(ops);
 	VALUE dst = c->log_buf;
@@ -605,8 +527,7 @@ static VALUE cwrite(struct clogger *c)
 			append_request_env(c, op[1]);
 			break;
 		case CL_OP_RESPONSE:
-			/* headers we found already got swapped for literals */
-			rb_str_buf_append(dst, g_dash);
+			append_response(c, op[1]);
 			break;
 		case CL_OP_SPECIAL:
 			special_var(c, NUM2INT(op[1]));
@@ -760,6 +681,12 @@ static VALUE ccall(struct clogger *c, VALUE env)
 		c->status = tmp[0];
 		c->headers = tmp[1];
 		c->body = tmp[2];
+
+		if (cHeaderHash != rb_obj_class(c->headers)) {
+			c->headers = rb_funcall(cHeaderHash, new_id, 1, tmp[1]);
+			rv = rb_ary_dup(rv);
+			rb_ary_store(rv, 1, c->headers);
+		}
 	} else {
 		c->status = INT2NUM(500);
 		c->headers = c->body = rb_ary_new();
@@ -828,6 +755,16 @@ static VALUE clogger_init_copy(VALUE clone, VALUE orig)
 
 #define CONST_GLOBAL_STR(val) CONST_GLOBAL_STR2(val, #val)
 
+static void init_rack_utils_header_hash(void)
+{
+	VALUE mRack, mUtils;
+
+	rb_require("rack");
+	mRack = rb_define_module("Rack");
+	mUtils = rb_define_module_under(mRack, "Utils");
+	cHeaderHash = rb_define_class_under(mUtils, "HeaderHash", rb_cHash);
+}
+
 void Init_clogger_ext(void)
 {
 	ltlt_id = rb_intern("<<");
@@ -837,6 +774,8 @@ void Init_clogger_ext(void)
 	to_i_id = rb_intern("to_i");
 	to_s_id = rb_intern("to_s");
 	size_id = rb_intern("size");
+	sq_brace_id = rb_intern("[]");
+	new_id = rb_intern("new");
 	cClogger = rb_define_class("Clogger", rb_cObject);
 	mFormat = rb_define_module_under(cClogger, "Format");
 	rb_define_alloc_func(cClogger, clogger_alloc);
@@ -863,4 +802,5 @@ void Init_clogger_ext(void)
 	CONST_GLOBAL_STR2(space, " ");
 	CONST_GLOBAL_STR2(question_mark, "?");
 	CONST_GLOBAL_STR2(rack_request_cookie_hash, "rack.request.cookie_hash");
+	init_rack_utils_header_hash();
 }

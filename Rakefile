@@ -18,6 +18,7 @@ common = lambda do |hoe|
   hoe.email = 'clogger@librelist.com'
   hoe.spec_extras.merge!('rdoc_options' => [ "--title", title ])
   hoe.remote_rdoc_dir = ''
+  hoe.extra_deps << [ 'rack', '> 0.9' ]
 end
 
 if ENV['CLOGGER_EXT']

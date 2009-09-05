@@ -1,6 +1,8 @@
 # -*- encoding: binary -*-
 # :stopdoc:
-#
+
+require 'rack'
+
 # Not at all optimized for performance, this was written based on
 # the original C extension code so it's not very Ruby-ish...
 class Clogger
@@ -23,6 +25,7 @@ class Clogger
       raise TypeError, "app response not a 3 element Array: #{resp.inspect}"
     end
     status, headers, body = resp
+    headers = Rack::Utils::HeaderHash.new(headers)
     if wrap_body?
       @reentrant = env['rack.multithread']
       @env, @status, @headers, @body = env, status, headers, body
@@ -114,7 +117,7 @@ private
       case op[0]
       when OP_LITERAL; op[1]
       when OP_REQUEST; byte_xs(env[op[1]] || "-")
-      when OP_RESPONSE; byte_xs(get_sent_header(headers, op[1]))
+      when OP_RESPONSE; byte_xs(headers[op[1]] || "-")
       when OP_SPECIAL; special_var(op[1], env, status, headers)
       when OP_EVAL; eval(op[1]).to_s rescue "-"
       when OP_TIME_LOCAL; Time.now.strftime(op[1])
@@ -131,16 +134,6 @@ private
         raise "EDOOFUS #{op.inspect}"
       end
     }.join('')
-  end
-
-  def get_sent_header(headers, match)
-    headers.each do |pair|
-      Array === pair && pair.size >= 2 or
-        raise TypeError, "headers not returning pairs"
-      key, value = pair
-      match == key.downcase and return value
-    end
-    "-"
   end
 
 end
