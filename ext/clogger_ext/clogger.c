@@ -67,7 +67,9 @@ struct clogger {
 
 	VALUE env;
 	VALUE cookies;
-	VALUE response;
+	VALUE status;
+	VALUE headers;
+	VALUE body;
 
 	off_t body_bytes_sent;
 	struct timeval tv_start;
@@ -104,7 +106,6 @@ static VALUE g_empty;
 static VALUE g_space;
 static VALUE g_question_mark;
 static VALUE g_rack_request_cookie_hash;
-static VALUE g_bad_app_response;
 
 #define LOG_BUF_INIT_SIZE 128
 
@@ -247,8 +248,7 @@ static VALUE sent_headers_ops(struct clogger *c)
 		}
 	}
 
-	rb_iterate(rb_each, RARRAY_PTR(c->response)[1],
-	           swap_sent_headers, (VALUE)&tmp);
+	rb_iterate(rb_each, c->headers, swap_sent_headers, (VALUE)&tmp);
 
 	return tmp.ops;
 }
@@ -263,7 +263,9 @@ static void clogger_mark(void *ptr)
 	rb_gc_mark(c->log_buf);
 	rb_gc_mark(c->env);
 	rb_gc_mark(c->cookies);
-	rb_gc_mark(c->response);
+	rb_gc_mark(c->status);
+	rb_gc_mark(c->headers);
+	rb_gc_mark(c->body);
 }
 
 static VALUE clogger_alloc(VALUE klass)
@@ -355,7 +357,7 @@ static void append_status(struct clogger *c)
 {
 	char buf[sizeof("999")];
 	int nr;
-	VALUE status = RARRAY_PTR(c->response)[0];
+	VALUE status = c->status;
 
 	if (TYPE(status) != T_FIXNUM) {
 		status = rb_funcall(status, to_i_id, 0);
@@ -698,12 +700,10 @@ static VALUE body_iter_i(VALUE str, VALUE memop)
 
 static VALUE wrap_each(struct clogger *c)
 {
-	VALUE body = RARRAY_PTR(c->response)[2];
-
 	c->body_bytes_sent = 0;
-	rb_iterate(rb_each, body, body_iter_i, (VALUE)&c->body_bytes_sent);
+	rb_iterate(rb_each, c->body, body_iter_i, (VALUE)&c->body_bytes_sent);
 
-	return body;
+	return c->body;
 }
 
 /**
@@ -735,7 +735,7 @@ static VALUE clogger_close(VALUE self)
 {
 	struct clogger *c = clogger_get(self);
 
-	return rb_funcall(RARRAY_PTR(c->response)[2], close_id, 0);
+	return rb_funcall(c->body, close_id, 0);
 }
 
 /* :nodoc: */
@@ -746,7 +746,7 @@ static VALUE clogger_fileno(VALUE self)
 	return c->fd < 0 ? Qnil : INT2NUM(c->fd);
 }
 
-static void ccall(struct clogger *c, VALUE env)
+static VALUE ccall(struct clogger *c, VALUE env)
 {
 	VALUE rv;
 
@@ -755,14 +755,21 @@ static void ccall(struct clogger *c, VALUE env)
 	c->cookies = Qfalse;
 	rv = rb_funcall(c->app, call_id, 1, env);
 	if (TYPE(rv) == T_ARRAY && RARRAY_LEN(rv) == 3) {
-		c->response = rv;
+		VALUE *tmp = RARRAY_PTR(rv);
+
+		c->status = tmp[0];
+		c->headers = tmp[1];
+		c->body = tmp[2];
 	} else {
-		c->response = g_bad_app_response;
+		c->status = INT2NUM(500);
+		c->headers = c->body = rb_ary_new();
 		cwrite(c);
 		rb_raise(rb_eTypeError,
 		         "app response not a 3 element Array: %s",
 			 RSTRING_PTR(rb_inspect(rv)));
 	}
+
+	return rv;
 }
 
 /*
@@ -775,6 +782,7 @@ static void ccall(struct clogger *c, VALUE env)
 static VALUE clogger_call(VALUE self, VALUE env)
 {
 	struct clogger *c = clogger_get(self);
+	VALUE rv;
 
 	if (c->wrap_body) {
 		VALUE tmp;
@@ -788,16 +796,17 @@ static VALUE clogger_call(VALUE self, VALUE env)
 			c = clogger_get(self);
 		}
 
-		ccall(c, env);
-		tmp = rb_ary_dup(c->response);
+		rv = ccall(c, env);
+		tmp = rb_ary_dup(rv);
 		rb_ary_store(tmp, 2, self);
+
 		return tmp;
 	}
 
-	ccall(c, env);
+	rv = ccall(c, env);
 	cwrite(c);
 
-	return c->response;
+	return rv;
 }
 
 /* :nodoc */
@@ -818,16 +827,6 @@ static VALUE clogger_init_copy(VALUE clone, VALUE orig)
 } while (0)
 
 #define CONST_GLOBAL_STR(val) CONST_GLOBAL_STR2(val, #val)
-
-static void init_bad_app_response(void)
-{
-	g_bad_app_response = rb_ary_new();
-	rb_ary_store(g_bad_app_response, 0, INT2NUM(500));
-	rb_ary_store(g_bad_app_response, 1, rb_obj_freeze(rb_hash_new()));
-	rb_ary_store(g_bad_app_response, 2, rb_obj_freeze(rb_ary_new()));
-	rb_obj_freeze(g_bad_app_response);
-	rb_global_variable(&g_bad_app_response);
-}
 
 void Init_clogger_ext(void)
 {
@@ -864,5 +863,4 @@ void Init_clogger_ext(void)
 	CONST_GLOBAL_STR2(space, " ");
 	CONST_GLOBAL_STR2(question_mark, "?");
 	CONST_GLOBAL_STR2(rack_request_cookie_hash, "rack.request.cookie_hash");
-	init_bad_app_response();
 }
