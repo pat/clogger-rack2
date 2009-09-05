@@ -684,7 +684,8 @@ static VALUE ccall(struct clogger *c, VALUE env)
 
 		if (cHeaderHash != rb_obj_class(c->headers)) {
 			c->headers = rb_funcall(cHeaderHash, new_id, 1, tmp[1]);
-			rv = rb_ary_dup(rv);
+			if (OBJ_FROZEN(rv))
+				rv = rb_ary_dup(rv);
 			rb_ary_store(rv, 1, c->headers);
 		}
 	} else {
@@ -712,10 +713,8 @@ static VALUE clogger_call(VALUE self, VALUE env)
 	VALUE rv;
 
 	if (c->wrap_body) {
-		VALUE tmp;
-
 		if (c->reentrant < 0) {
-			tmp = rb_hash_aref(env, g_rack_multithread);
+			VALUE tmp = rb_hash_aref(env, g_rack_multithread);
 			c->reentrant = Qfalse == tmp ? 0 : 1;
 		}
 		if (c->reentrant) {
@@ -724,10 +723,11 @@ static VALUE clogger_call(VALUE self, VALUE env)
 		}
 
 		rv = ccall(c, env);
-		tmp = rb_ary_dup(rv);
-		rb_ary_store(tmp, 2, self);
+		if (OBJ_FROZEN(rv))
+			rv = rb_ary_dup(rv);
+		rb_ary_store(rv, 2, self);
 
-		return tmp;
+		return rv;
 	}
 
 	rv = ccall(c, env);
