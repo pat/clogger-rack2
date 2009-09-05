@@ -819,7 +819,7 @@ static VALUE clogger_init_copy(VALUE clone, VALUE orig)
 
 #define CONST_GLOBAL_STR(val) CONST_GLOBAL_STR2(val, #val)
 
-static void init_bad_response(void)
+static void init_bad_app_response(void)
 {
 	g_bad_app_response = rb_ary_new();
 	rb_ary_store(g_bad_app_response, 0, INT2NUM(500));
@@ -864,5 +864,5 @@ void Init_clogger_ext(void)
 	CONST_GLOBAL_STR2(space, " ");
 	CONST_GLOBAL_STR2(question_mark, "?");
 	CONST_GLOBAL_STR2(rack_request_cookie_hash, "rack.request.cookie_hash");
-	init_bad_response();
+	init_bad_app_response();
 }
