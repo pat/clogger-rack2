@@ -20,6 +20,10 @@ is customizable so you can specify exactly which fields to log.
     " (double quote)
     all bytes in the range of \x00-\x1F
 
+* multi-instance capable and reentrant.  You can use Clogger in a
+  multi-threaded server, and even multiple Cloggers logging to
+  different locations and different formats in the same process.
+
 == SYNOPSIS
 
 Clogger may be loaded as Rack middleware in your config.ru:
