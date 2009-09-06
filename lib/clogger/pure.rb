@@ -14,6 +14,7 @@ class Clogger
     @fmt_ops = compile_format(opts[:format] || Format::Common, opts)
     @wrap_body = need_wrap_body?(@fmt_ops)
     @reentrant = nil
+    @need_resp = need_response_headers?(@fmt_ops)
     @body_bytes_sent = 0
   end
 
@@ -25,7 +26,7 @@ class Clogger
       raise TypeError, "app response not a 3 element Array: #{resp.inspect}"
     end
     status, headers, body = resp
-    headers = Rack::Utils::HeaderHash.new(headers)
+    headers = Rack::Utils::HeaderHash.new(headers) if @need_resp
     if wrap_body?
       @reentrant = env['rack.multithread']
       @env, @status, @headers, @body = env, status, headers, body

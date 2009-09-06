@@ -682,7 +682,7 @@ static VALUE ccall(struct clogger *c, VALUE env)
 		c->headers = tmp[1];
 		c->body = tmp[2];
 
-		if (cHeaderHash != rb_obj_class(c->headers)) {
+		if (c->need_resp && cHeaderHash != rb_obj_class(c->headers)) {
 			c->headers = rb_funcall(cHeaderHash, new_id, 1, tmp[1]);
 			if (OBJ_FROZEN(rv))
 				rv = rb_ary_dup(rv);
