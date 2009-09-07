@@ -1,8 +1,5 @@
 = Clogger - configurable request logging for Rack
 
-* http://clogger.rubyforge.org/
-* mailto:clogger@librelist.com
-
 == DESCRIPTION
 
 Clogger is Rack middleware for logging HTTP requests.  The log format
@@ -104,6 +101,8 @@ requests) go to the mailing list.
 
 Do not send HTML mail or attachments.  Do not top post.
 
+Homepage: http://clogger.rubyforge.org/
+
 == INSTALL
 
 For all Rubygems users:
@@ -123,7 +122,7 @@ interested in helping with the release/support effort.
 
 == LICENSE
 
-Copyright (C) 2009 Eric Wong <normalperson@yhbt.net> and contributors.
+Copyright (C) 2009 Eric Wong and contributors.
 
 Clogger is free software; you can redistribute it and/or modify it under
 the terms of the GNU Lesser General Public License as published by the
@@ -132,7 +131,7 @@ Free Software Foundation, version 3.0.
 Clogger is distributed in the hope that it will be useful, but WITHOUT ANY
 WARRANTY; without even the implied warranty of MERCHANTABILITY or
 FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
-License for more details.
+License in the COPYING file for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with Clogger; if not, write to the Free Software Foundation, Inc.,
