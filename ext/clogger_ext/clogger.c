@@ -758,11 +758,14 @@ static VALUE clogger_init_copy(VALUE clone, VALUE orig)
 static void init_rack_utils_header_hash(void)
 {
 	VALUE mRack, mUtils;
-
+#if 0
+  extra " is to disable rdoc (and so is avoiding a /* comment */) here
+  let me know if there's a better way...
+#endif
 	rb_require("rack");
-	mRack = rb_define_module("Rack");
-	mUtils = rb_define_module_under(mRack, "Utils");
-	cHeaderHash = rb_define_class_under(mUtils, "HeaderHash", rb_cHash);
+	mRack = rb_define_module("Rack""");
+	mUtils = rb_define_module_under(mRack, "Utils""");
+	cHeaderHash = rb_define_class_under(mUtils, "HeaderHash""", rb_cHash);
 }
 
 void Init_clogger_ext(void)
