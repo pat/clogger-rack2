@@ -1,14 +1,11 @@
 all:: test
 ruby = ruby
+rake = rake
 
 -include local.mk
 
 ifeq ($(DLEXT),) # "so" for Linux
   DLEXT := $(shell $(ruby) -rrbconfig -e 'puts Config::CONFIG["DLEXT"]')
-endif
-
-ifeq ($(RUBY_VERSION),)
-  RUBY_VERSION := $(shell $(ruby) -e 'puts RUBY_VERSION')
 endif
 
 ext/clogger_ext/Makefile: ext/clogger_ext/clogger.c ext/clogger_ext/extconf.rb
@@ -29,10 +26,13 @@ test-pure:
 
 test: test-ext test-pure
 
-Manifest.txt:
-	git ls-files > $@+
-	cmp $@+ $@ || mv $@+ $@
-	$(RM) $@+
+History:
+	$(rake) -s history > $@+
+	mv $@+ $@
+
+.manifest: History
+	(git ls-files; for i in $^ $@; do echo $$i; done) | LC_ALL=C sort > $@+
+	mv $@+ $@
 
 VERSION := $(shell git describe 2>/dev/null | sed 's/^v//')
 
@@ -41,6 +41,8 @@ v := /^v$(VERSION)$$/
 vPREV := $(shell git tag -l 2>/dev/null | sed -n -e '$(v)!h' -e '$(v){x;p;q}')
 release_notes := release_notes-$(VERSION).txt
 release_changes := release_changes-$(VERSION).txt
+release-notes: $(release_notes)
+release-changes: $(release_changes)
 $(release_changes): verify
 	git diff --stat $(vPREV) v$(VERSION) > $@+
 	echo >> $@+
@@ -55,24 +57,48 @@ verify:
 	@test -n "$(VERSION)" || { echo >&2 VERSION= not defined; exit 1; }
 	git rev-parse --verify refs/tags/v$(VERSION)^{}
 	@test -n "$(VISUAL)" || { echo >&2 VISUAL= not defined; exit 1; }
-
-package: verify
 	git diff-index --quiet HEAD^0
 	test `git rev-parse --verify HEAD^0` = \
 	     `git rev-parse --verify refs/tags/v$(VERSION)^{}`
-	$(RM) -r pkg
-	unset CLOGGER_EXT; rake package VERSION=$(VERSION)
-	CLOGGER_EXT=1 rake package VERSION=$(VERSION)
+
+pkg/clogger-$(VERSION).gem: .manifest History clogger.gemspec
+	gem build clogger.gemspec
+	mkdir -p pkg
+	mv $(@F) $@
+
+pkg/clogger-$(VERSION).tgz: HEAD = v$(VERSION)
+pkg/clogger-$(VERSION).tgz: .manifest History
+	$(RM) -r $(basename $@)
+	git archive --format=tar --prefix=$(basename $@)/ $(HEAD) | tar xv
+	install -m644 $^ $(basename $@)
+	cd pkg && tar cv $(basename $(@F)) | gzip -9 > $(@F)+
+	mv $@+ $@
+
+package: pkg/clogger-$(VERSION).gem pkg/clogger-$(VERSION).tgz
 
 # not using Hoe's release system since we release 2 gems but only one tgz
-release: package Manifest.txt $(release_notes) $(release_changes)
+release: package $(release_notes) $(release_changes)
 	rubyforge add_release -f -n $(release_notes) -a $(release_changes) \
 	  clogger clogger $(VERSION) pkg/clogger-$(VERSION).gem
 	rubyforge add_file \
 	  clogger clogger $(VERSION) pkg/clogger-$(VERSION).tgz
 	rubyforge add_release -f -n $(release_notes) -a $(release_changes) \
 	  clogger clogger_ext $(VERSION) pkg/clogger_ext-$(VERSION).gem
-	rake post_news
 endif
 
-.PHONY: test doc Manifest.txt release
+doc: .document History
+	rdoc -Na -t "$(shell sed -ne '1s/^= //p' README)"
+	install -m644 COPYING doc/COPYING
+	cd doc && ln README.html tmp.html && mv tmp.html index.html
+
+# publishes docs to http://clogger.rubyforge.org/
+# this preserves timestamps as best as possible to help HTTP caches out
+# git set-file-times can is here: http://git-scm.org/gitwiki/ExampleScripts
+publish_doc:
+	git set-file-times
+	$(RM) -r doc
+	$(MAKE) doc
+	rsync -av --delete doc/ rubyforge.org:/var/www/gforge-projects/clogger/
+	git ls-files | xargs touch
+
+.PHONY: test doc .manifest release History
