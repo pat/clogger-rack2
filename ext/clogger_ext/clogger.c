@@ -759,8 +759,8 @@ static void init_rack_utils_header_hash(void)
 {
 	VALUE mRack, mUtils;
 #if 0
-  extra " is to disable rdoc (and so is avoiding a /* comment */) here
-  let me know if there's a better way...
+  extra double quotes below are to disable rdoc (and so is avoiding comments)
+  let me know if there is a better way...
 #endif
 	rb_require("rack");
 	mRack = rb_define_module("Rack""");
