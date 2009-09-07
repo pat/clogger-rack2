@@ -27,4 +27,6 @@ is customizable so you can specify exactly which fields to log.
 
   # HeaderHash wasn't case-insensitive in old versions
   s.add_dependency(%q<rack>, ["> 0.9"])
+  s.extensions = %w(ext/clogger_ext/extconf.rb)
+
 end

@@ -82,8 +82,6 @@ release: package $(release_notes) $(release_changes)
 	  clogger clogger $(VERSION) pkg/clogger-$(VERSION).gem
 	rubyforge add_file \
 	  clogger clogger $(VERSION) pkg/clogger-$(VERSION).tgz
-	rubyforge add_release -f -n $(release_notes) -a $(release_changes) \
-	  clogger clogger_ext $(VERSION) pkg/clogger_ext-$(VERSION).gem
 endif
 
 doc: .document History
