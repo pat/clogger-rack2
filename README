@@ -71,6 +71,7 @@ somewhere inside the "Rails::Initializer.run do |config|" block:
 * $response_length - body_bytes_sent, except "-" instead of "0" (Apache: %b)
 * $remote_user - HTTP-authenticated user
 * $remote_addr - IP of the requesting client socket
+* $status - three-digit HTTP status code (e.g. 200, 404, 302)
 * $ip - X-Forwarded-For request header if available, $remote_addr if not
 * $pid - process ID of the current process
 * $e{Thread.current} - Thread processing the request
