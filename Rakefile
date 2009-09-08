@@ -10,7 +10,7 @@ task :history do
   tags = `git tag -l`.split(/\n/).grep(/^v/).reverse
   timefmt = '%Y-%m-%d %H:%M UTC'
   tags.each do |tag|
-    header, subject, body = `git cat-file tag #{tag}`.split(/\n\n/)
+    header, subject, body = `git cat-file tag #{tag}`.split(/\n\n/, 3)
     tagger = header.split(/\n/).grep(/^tagger /).first.split(/\s/)
     time = Time.at(tagger[-2].to_i).utc
     puts "=== #{tag.sub(/^v/, '')} / #{time.strftime(timefmt)}"
