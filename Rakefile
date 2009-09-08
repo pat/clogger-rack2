@@ -15,7 +15,7 @@ task :history do
     time = Time.at(tagger[-2].to_i).utc
     puts "=== #{tag.sub(/^v/, '')} / #{time.strftime(timefmt)}"
     puts ""
-    puts body
+    puts body.gsub(/^/sm, "  ")
     puts ""
   end
 end
