@@ -39,8 +39,8 @@ VERSION := $(shell git describe 2>/dev/null | sed 's/^v//')
 ifneq ($(VERSION),)
 v := /^v$(VERSION)$$/
 vPREV := $(shell git tag -l 2>/dev/null | sed -n -e '$(v)!h' -e '$(v){x;p;q}')
-release_notes := release_notes-$(VERSION).txt
-release_changes := release_changes-$(VERSION).txt
+release_notes := release_notes-$(VERSION)
+release_changes := release_changes-$(VERSION)
 release-notes: $(release_notes)
 release-changes: $(release_changes)
 $(release_changes): verify
@@ -48,8 +48,15 @@ $(release_changes): verify
 	echo >> $@+
 	git log $(vPREV)..v$(VERSION) >> $@+
 	$(VISUAL) $@+ && test -s $@+ && mv $@+ $@
+$(release_notes): pkggem = pkg/clogger-$(VERSION).gem
 $(release_notes): verify package
-	gem spec pkg/clogger-$(VERSION).gem description | sed -ne '/\w/p' > $@+
+	gem spec $(pkggem) description | sed -ne '/\w/p' > $@+
+	echo >> $@+
+	gem spec $(pkggem) homepage | sed -ne 's/^--- /* /p' >> $@+
+	gem spec $(pkggem) email | sed -ne 's/^--- /* /p' >> $@+
+	echo '* git://git.bogomips.org/clogger.git' >> $@+
+	echo >> $@+
+	echo Changes: >> $@+
 	echo >> $@+
 	git cat-file tag v$(VERSION) | awk 'p>1{print $$0}/^$$/{++p}' >> $@+
 	$(VISUAL) $@+ && test -s $@+ && mv $@+ $@
