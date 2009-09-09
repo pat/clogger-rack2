@@ -656,7 +656,9 @@ static VALUE clogger_close(VALUE self)
 {
 	struct clogger *c = clogger_get(self);
 
-	return rb_funcall(c->body, close_id, 0);
+	if (rb_respond_to(c->body, close_id))
+		return rb_funcall(c->body, close_id, 0);
+	return Qnil;
 }
 
 /* :nodoc: */

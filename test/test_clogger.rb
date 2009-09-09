@@ -469,4 +469,24 @@ class TestClogger < Test::Unit::TestCase
     assert_equal "<GET /hello?goodbye=true HTTP/1.0>", s
   end
 
+  def test_clogger_body_not_closeable
+    s = ''
+    app = lambda { |env| [302, [ %w(a) ], []] }
+    cl = Clogger.new(app, :logger => s)
+    status, headers, body = cl.call(@req)
+    assert_nil body.close
+  end
+
+  def test_clogger_body_close_return_value
+    s = ''
+    body = []
+    def body.close
+      :foo
+    end
+    app = lambda { |env| [302, [ %w(a) ], body ] }
+    cl = Clogger.new(app, :logger => s)
+    status, headers, body = cl.call(@req)
+    assert_equal :foo, body.close
+  end
+
 end

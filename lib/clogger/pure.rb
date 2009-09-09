@@ -47,7 +47,7 @@ class Clogger
   end
 
   def close
-    @body.close
+    @body.close if @body.respond_to?(:close)
   end
 
   def reentrant?
