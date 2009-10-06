@@ -7,6 +7,11 @@ require "stringio"
 require "rack"
 
 require "clogger"
+
+# used to test subclasses
+class FooString < String
+end
+
 class TestClogger < Test::Unit::TestCase
   include Clogger::Format
 
@@ -390,6 +395,41 @@ class TestClogger < Test::Unit::TestCase
     app = lambda { |env| [302, [ %w(a) ], []] }
     cl = Clogger.new(app, :logger => str, :format => '$sent_http_set_cookie')
     assert_nothing_raised { cl.call(@req) }
+  end
+
+  def test_subclass_hash
+    str = StringIO.new
+    req = Rack::Utils::HeaderHash.new(@req)
+    app = lambda { |env| [302, [ %w(a) ], []] }
+    cl = Clogger.new(app, :logger => str, :format => Rack_1_0)
+    assert_nothing_raised { cl.call(req).last.each {} }
+    assert str.size > 0
+  end
+
+  def test_subclassed_string_req
+    str = StringIO.new
+    req = {}
+    @req.each { |key,value|
+      req[FooString.new(key)] = value.kind_of?(String) ?
+                                FooString.new(value) : value
+    }
+    app = lambda { |env| [302, [ %w(a) ], []] }
+    cl = Clogger.new(app, :logger => str, :format => Rack_1_0)
+    assert_nothing_raised { cl.call(req).last.each {} }
+    assert str.size > 0
+  end
+
+  def test_subclassed_string_in_body
+    str = StringIO.new
+    body = "hello"
+    r = nil
+    app = lambda { |env| [302, [ %w(a) ], [FooString.new(body)]] }
+    cl = Clogger.new(app, :logger => str, :format => '$body_bytes_sent')
+    assert_nothing_raised { cl.call(@req).last.each { |x| r = x } }
+    assert str.size > 0
+    assert_equal body.size.to_s << "\n", str.string
+    assert_equal r, body
+    assert r.object_id != body.object_id
   end
 
   def test_http_09_request
