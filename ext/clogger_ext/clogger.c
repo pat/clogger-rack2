@@ -714,6 +714,8 @@ static VALUE clogger_call(VALUE self, VALUE env)
 	struct clogger *c = clogger_get(self);
 	VALUE rv;
 
+	env = rb_check_convert_type(env, T_HASH, "Hash", "to_hash");
+
 	if (c->wrap_body) {
 		if (c->reentrant < 0) {
 			VALUE tmp = rb_hash_aref(env, g_rack_multithread);
