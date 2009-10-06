@@ -1,4 +1,5 @@
 ENV["VERSION"] or abort "VERSION= must be specified"
+manifest = File.readlines('.manifest').map! { |x| x.chomp! }
 
 Gem::Specification.new do |s|
   s.name = %q{clogger}
@@ -15,8 +16,19 @@ Clogger is Rack middleware for logging HTTP requests.  The log format
 is customizable so you can specify exactly which fields to log.
 }.strip
   s.email = %q{clogger@librelist.com}
-  s.extra_rdoc_files = %w(README History)
-  s.files = File.readlines('.manifest').map! { |x| x.chomp! }
+
+  s.extra_rdoc_files = File.readlines('.document').map! do |x|
+    x.chomp!
+    if File.directory?(x)
+      manifest.grep(%r{\A#{x}/})
+    elsif File.file?(x)
+      x
+    else
+      nil
+    end
+  end.flatten.compact
+
+  s.files = manifest
   s.rdoc_options = [ "-Na",
                      "-t", "Clogger - configurable request logging for Rack"
                    ]

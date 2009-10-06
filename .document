@@ -1,4 +1,5 @@
 README
-History
+NEWS
+ChangeLog
 lib
 ext/clogger_ext/clogger.c

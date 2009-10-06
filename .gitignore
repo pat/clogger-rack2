@@ -12,4 +12,6 @@ Makefile
 /local.mk
 /pkg
 /.manifest
-/History
+/ChangeLog
+/NEWS
+/GIT-VERSION-FILE
