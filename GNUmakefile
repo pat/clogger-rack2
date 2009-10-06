@@ -98,7 +98,7 @@ doc: .document History
 
 # publishes docs to http://clogger.rubyforge.org/
 # this preserves timestamps as best as possible to help HTTP caches out
-# git set-file-times can is here: http://git-scm.org/gitwiki/ExampleScripts
+# git set-file-times is here: http://git-scm.org/gitwiki/ExampleScripts
 publish_doc:
 	git set-file-times
 	$(RM) -r doc
