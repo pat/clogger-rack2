@@ -124,7 +124,7 @@ static inline int need_escape(unsigned c)
 }
 
 /* we are encoding-agnostic, clients can send us all sorts of junk */
-static VALUE byte_xs(VALUE from)
+static VALUE byte_xs_str(VALUE from)
 {
 	static const char esc[] = "0123456789ABCDEF";
 	unsigned char *new_ptr;
@@ -162,6 +162,11 @@ static VALUE byte_xs(VALUE from)
 	assert(RSTRING_PTR(rv)[RSTRING_LEN(rv)] == '\0');
 
 	return rv;
+}
+
+static VALUE byte_xs(VALUE from)
+{
+	return byte_xs_str(rb_obj_as_string(from));
 }
 
 static void clogger_mark(void *ptr)
@@ -459,7 +464,7 @@ static void append_request_env(struct clogger *c, VALUE key)
 {
 	VALUE tmp = rb_hash_aref(c->env, key);
 
-	tmp = NIL_P(tmp) ? g_dash : byte_xs(rb_obj_as_string(tmp));
+	tmp = NIL_P(tmp) ? g_dash : byte_xs(tmp);
 	rb_str_buf_append(c->log_buf, tmp);
 }
 
@@ -470,7 +475,7 @@ static void append_response(struct clogger *c, VALUE key)
 	assert(rb_obj_class(c->headers) == cHeaderHash);
 
 	v = rb_funcall(c->headers, sq_brace_id, 1, key);
-	v = NIL_P(v) ? g_dash : byte_xs(rb_obj_as_string(v));
+	v = NIL_P(v) ? g_dash : byte_xs(v);
 	rb_str_buf_append(c->log_buf, v);
 }
 
