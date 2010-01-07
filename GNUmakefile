@@ -1,6 +1,6 @@
 all:: test
-ruby = ruby
-rake = rake
+RUBY = ruby
+RAKE = rake
 GIT_URL = git://git.bogomips.org/clogger.git
 
 GIT-VERSION-FILE: .FORCE-GIT-VERSION-FILE
@@ -9,11 +9,11 @@ GIT-VERSION-FILE: .FORCE-GIT-VERSION-FILE
 -include local.mk
 
 ifeq ($(DLEXT),) # "so" for Linux
-  DLEXT := $(shell $(ruby) -rrbconfig -e 'puts Config::CONFIG["DLEXT"]')
+  DLEXT := $(shell $(RUBY) -rrbconfig -e 'puts Config::CONFIG["DLEXT"]')
 endif
 
 ext/clogger_ext/Makefile: ext/clogger_ext/clogger.c ext/clogger_ext/extconf.rb
-	cd ext/clogger_ext && $(ruby) extconf.rb
+	cd ext/clogger_ext && $(RUBY) extconf.rb
 
 ext/clogger_ext/clogger.$(DLEXT): ext/clogger_ext/Makefile
 	$(MAKE) -C ext/clogger_ext
@@ -23,10 +23,10 @@ clean:
 	$(RM) ext/clogger_ext/Makefile lib/clogger_ext.$(DLEXT)
 
 test-ext: ext/clogger_ext/clogger.$(DLEXT)
-	$(ruby) -Iext/clogger_ext:lib test/test_clogger.rb
+	$(RUBY) -Iext/clogger_ext:lib test/test_clogger.rb
 
 test-pure:
-	CLOGGER_PURE=t $(ruby) -Ilib test/test_clogger.rb
+	CLOGGER_PURE=t $(RUBY) -Ilib test/test_clogger.rb
 
 test: test-ext test-pure
 
@@ -43,7 +43,7 @@ manifest: $(pkg_extra)
 	$(RM) $@+
 
 NEWS: GIT-VERSION-FILE
-	$(rake) -s news_rdoc > $@+
+	$(RAKE) -s news_rdoc > $@+
 	mv $@+ $@
 
 SINCE = 0.0.7
@@ -63,13 +63,13 @@ doc: .document NEWS ChangeLog
 	rdoc -Na -t "$(shell sed -ne '1s/^= //p' README)"
 	install -m644 COPYING doc/COPYING
 	install -m644 $(shell grep '^[A-Z]' .document)  doc/
-	$(ruby) -i -p -e \
+	$(RUBY) -i -p -e \
 	  '$$_.gsub!("</title>",%q{\&$(call atom,$(cgit_atom))})' \
 	  doc/ChangeLog.html
-	$(ruby) -i -p -e \
+	$(RUBY) -i -p -e \
 	  '$$_.gsub!("</title>",%q{\&$(call atom,$(news_atom))})' \
 	  doc/NEWS.html doc/README.html
-	$(rake) -s news_atom > doc/NEWS.atom.xml
+	$(RAKE) -s news_atom > doc/NEWS.atom.xml
 	cd doc && ln README.html tmp && mv tmp index.html
 
 # publishes docs to http://clogger.rubyforge.org/
@@ -93,10 +93,10 @@ release_changes := release_changes-$(VERSION)
 release-notes: $(release_notes)
 release-changes: $(release_changes)
 $(release_changes):
-	$(rake) -s release_changes > $@+
+	$(RAKE) -s release_changes > $@+
 	$(VISUAL) $@+ && test -s $@+ && mv $@+ $@
 $(release_notes):
-	GIT_URL=$(GIT_URL) $(rake) -s release_notes > $@+
+	GIT_URL=$(GIT_URL) $(RUBY) -s release_notes > $@+
 	$(VISUAL) $@+ && test -s $@+ && mv $@+ $@
 
 # ensures we're actually on the tagged $(VERSION), only used for release
@@ -135,9 +135,10 @@ package: $(pkgtgz) $(pkggem)
 
 release: verify package $(release_notes) $(release_changes)
 	rubyforge add_release -f -n $(release_notes) -a $(release_changes) \
-	  $(rfproject) $(rfpackage) $(VERSION) $(pkggem)
-	rubyforge add_file \
 	  $(rfproject) $(rfpackage) $(VERSION) $(pkgtgz)
+	gem push $(pkggem)
+	rubyforge add_file \
+	  $(rfproject) $(rfpackage) $(VERSION) $(pkggem)
 else
 gem install-gem: GIT-VERSION-FILE
 	$(MAKE) $@ VERSION=$(GIT_VERSION)
