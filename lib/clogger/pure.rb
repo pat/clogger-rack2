@@ -27,10 +27,10 @@ class Clogger
     end
     status, headers, body = resp
     headers = Rack::Utils::HeaderHash.new(headers) if @need_resp
-    if wrap_body?
+    if @wrap_body
       @reentrant = env['rack.multithread']
       @env, @status, @headers, @body = env, status, headers, body
-      return [ status, headers, reentrant? ? self.dup : self ]
+      return [ status, headers, @reentrant ? self.dup : self ]
     end
     log(env, status, headers)
     [ status, headers, body ]
