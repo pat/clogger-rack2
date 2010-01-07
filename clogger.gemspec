@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
     s.required_rubygems_version = Gem::Requirement.new(">= 0")
   end
   s.homepage = 'http://clogger.rubyforge.org/'
-  s.authors = ["Eric Wong"]
+  s.authors = ["cloggers"]
   s.date = Time.now.utc.strftime('%Y-%m-%d')
   s.description = %q{
 Clogger is Rack middleware for logging HTTP requests.  The log format
