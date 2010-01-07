@@ -1,6 +1,6 @@
 # -*- encoding: binary -*-
 class Clogger
-  VERSION = '0.1.0'
+  VERSION = '0.2.0'
 
   OP_LITERAL = 0
   OP_REQUEST = 1
