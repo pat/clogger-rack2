@@ -517,6 +517,22 @@ class TestClogger < Test::Unit::TestCase
     assert_nil body.close
   end
 
+  def test_clogger_response_frozen
+    response = [ 200, { "AAAA" => "AAAA"}.freeze, [].freeze ].freeze
+    s = StringIO.new("")
+    app = Rack::Builder.new do
+      use Clogger, :logger => s, :format => "$request_time $http_host"
+      run lambda { |env| response }
+    end
+    assert_nothing_raised do
+      3.times do
+        resp = app.call(@req)
+        assert ! resp.frozen?
+        resp.last.each { |x| }
+      end
+    end
+  end
+
   def test_clogger_body_close_return_value
     s = ''
     body = []

@@ -689,10 +689,9 @@ static VALUE ccall(struct clogger *c, VALUE env)
 		c->headers = tmp[1];
 		c->body = tmp[2];
 
+		rv = rb_ary_new4(3, tmp);
 		if (c->need_resp && cHeaderHash != rb_obj_class(c->headers)) {
 			c->headers = rb_funcall(cHeaderHash, new_id, 1, tmp[1]);
-			if (OBJ_FROZEN(rv))
-				rv = rb_ary_dup(rv);
 			rb_ary_store(rv, 1, c->headers);
 		}
 	} else {
@@ -732,8 +731,7 @@ static VALUE clogger_call(VALUE self, VALUE env)
 		}
 
 		rv = ccall(c, env);
-		if (OBJ_FROZEN(rv))
-			rv = rb_ary_dup(rv);
+		assert(!OBJ_FROZEN(rv) && "frozen response array");
 		rb_ary_store(rv, 2, self);
 
 		return rv;
