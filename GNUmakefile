@@ -79,7 +79,7 @@ publish_doc:
 	git set-file-times
 	$(RM) -r doc
 	$(MAKE) doc
-	rsync -av --delete doc/ rubyforge.org:/var/www/gforge-projects/clogger/
+	rsync -av doc/ rubyforge.org:/var/www/gforge-projects/clogger/
 	git ls-files | xargs touch
 
 ifneq ($(VERSION),)
