@@ -96,7 +96,7 @@ $(release_changes):
 	$(RAKE) -s release_changes > $@+
 	$(VISUAL) $@+ && test -s $@+ && mv $@+ $@
 $(release_notes):
-	GIT_URL=$(GIT_URL) $(RUBY) -s release_notes > $@+
+	GIT_URL=$(GIT_URL) $(RAKE) -s release_notes > $@+
 	$(VISUAL) $@+ && test -s $@+ && mv $@+ $@
 
 # ensures we're actually on the tagged $(VERSION), only used for release

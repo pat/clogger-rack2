@@ -44,6 +44,7 @@ def tags
 end
 
 cgit_url = "http://git.bogomips.org/cgit/clogger.git"
+git_url = ENV['GIT_URL'] || 'git://git.bogomips.org/clogger.git'
 
 desc 'prints news as an Atom feed'
 task :news_atom do
@@ -104,8 +105,6 @@ desc "print release notes for Rubyforge"
 task :release_notes do
   require 'rubygems'
 
-  git_url = ENV['GIT_URL'] || 'git://git.bogomips.org/clogger.git'
-
   spec = Gem::Specification.load('clogger.gemspec')
   puts spec.description.strip
   puts ""
@@ -145,7 +144,7 @@ task :raa_update do
     :category_minor => 'Rack',
     :url => s.homepage,
     :download => 'http://rubyforge.org/frs/?group_id=8896',
-    :license => 'LGPLv3',
+    :license => 'LGPL',
     :description_style => 'Plain',
     :description => desc,
     :pass => password,
