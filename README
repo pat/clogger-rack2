@@ -20,9 +20,9 @@ is customizable so you can specify exactly which fields to log.
     " (double quote)
     all bytes in the range of \x00-\x1F
 
-* multi-instance capable and reentrant.  You can use Clogger in a
-  multi-threaded server, and even multiple Cloggers logging to
-  different locations and different formats in the same process.
+* multi-instance capable and (optionally) reentrant.  You can use
+  Clogger in a multi-threaded server, and even multiple Cloggers logging
+  to different locations and different formats in the same process.
 
 == SYNOPSIS
 
@@ -31,7 +31,8 @@ Clogger may be loaded as Rack middleware in your config.ru:
   require "clogger"
   use Clogger,
       :format => Clogger::Format::Combined,
-      :logger => ::File.open("/path/to/log", "ab")
+      :logger => ::File.open("/path/to/log", "ab"),
+      :reentrant => true
   run YourApplication.new
 
 If you're using Rails 2.3.x or later, in your config/environment.rb
@@ -39,7 +40,8 @@ somewhere inside the "Rails::Initializer.run do |config|" block:
 
   config.middleware.use 'Clogger',
       :format => Clogger::Format::Combined,
-      :logger => ::File.open("/path/to/log", "ab")
+      :logger => ::File.open("/path/to/log", "ab"),
+      :reentrant => false
 
 == VARIABLES
 
