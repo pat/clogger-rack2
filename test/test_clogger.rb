@@ -545,4 +545,46 @@ class TestClogger < Test::Unit::TestCase
     assert_equal :foo, body.close
   end
 
+  def test_clogger_auto_reentrant_true
+    s = ''
+    body = []
+    app = lambda { |env| [302, [ %w(a) ], body ] }
+    cl = Clogger.new(app, :logger => s, :format => "$request_time")
+    @req['rack.multithread'] = true
+    status, headers, body = cl.call(@req)
+    assert cl.reentrant?
+  end
+
+  def test_clogger_auto_reentrant_false
+    s = ''
+    body = []
+    app = lambda { |env| [302, [ %w(a) ], body ] }
+    cl = Clogger.new(app, :logger => s, :format => "$request_time")
+    @req['rack.multithread'] = false
+    status, headers, body = cl.call(@req)
+    assert ! cl.reentrant?
+  end
+
+  def test_clogger_auto_reentrant_forced_true
+    s = ''
+    body = []
+    app = lambda { |env| [302, [ %w(a) ], body ] }
+    o = { :logger => s, :format => "$request_time", :reentrant => true }
+    cl = Clogger.new(app, o)
+    @req['rack.multithread'] = false
+    status, headers, body = cl.call(@req)
+    assert cl.reentrant?
+  end
+
+  def test_clogger_auto_reentrant_forced_false
+    s = ''
+    body = []
+    app = lambda { |env| [302, [ %w(a) ], body ] }
+    o = { :logger => s, :format => "$request_time", :reentrant => false }
+    cl = Clogger.new(app, o)
+    @req['rack.multithread'] = true
+    status, headers, body = cl.call(@req)
+    assert ! cl.reentrant?
+  end
+
 end

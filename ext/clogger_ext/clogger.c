@@ -599,6 +599,19 @@ static VALUE clogger_init(int argc, VALUE *argv, VALUE self)
 		tmp = rb_hash_aref(o, ID2SYM(rb_intern("format")));
 		if (!NIL_P(tmp))
 			fmt = tmp;
+
+		tmp = rb_hash_aref(o, ID2SYM(rb_intern("reentrant")));
+		switch (TYPE(tmp)) {
+		case T_TRUE:
+			c->reentrant = 1;
+			break;
+		case T_FALSE:
+			c->reentrant = 0;
+		case T_NIL:
+			break;
+		default:
+			rb_raise(rb_eArgError, ":reentrant must be boolean");
+		}
 	}
 
 	init_buffers(c);

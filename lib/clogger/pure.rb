@@ -13,7 +13,7 @@ class Clogger
     (@logger.sync = true) rescue nil
     @fmt_ops = compile_format(opts[:format] || Format::Common, opts)
     @wrap_body = need_wrap_body?(@fmt_ops)
-    @reentrant = nil
+    @reentrant = opts[:reentrant]
     @need_resp = need_response_headers?(@fmt_ops)
     @body_bytes_sent = 0
   end
@@ -28,7 +28,7 @@ class Clogger
     status, headers, body = resp
     headers = Rack::Utils::HeaderHash.new(headers) if @need_resp
     if @wrap_body
-      @reentrant = env['rack.multithread']
+      @reentrant = env['rack.multithread'] if @reentrant.nil?
       @env, @status, @headers, @body = env, status, headers, body
       return [ status, headers, @reentrant ? self.dup : self ]
     end
