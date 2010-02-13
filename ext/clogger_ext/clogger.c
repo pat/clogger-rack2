@@ -188,7 +188,7 @@ static VALUE clogger_alloc(VALUE klass)
 {
 	struct clogger *c;
 
-	return Data_Make_Struct(klass, struct clogger, clogger_mark, 0, c);
+	return Data_Make_Struct(klass, struct clogger, clogger_mark, -1, c);
 }
 
 static struct clogger *clogger_get(VALUE self)

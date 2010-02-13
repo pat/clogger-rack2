@@ -587,4 +587,22 @@ class TestClogger < Test::Unit::TestCase
     assert ! cl.reentrant?
   end
 
+  # so we don't  care about the portability of this test
+  # if it doesn't leak on Linux, it won't leak anywhere else
+  # unless your C compiler or platform is otherwise broken
+  LINUX_PROC_PID_STATUS = "/proc/self/status"
+  def test_memory_leak
+    app = lambda { |env| [ 0, {}, [] ] }
+    clogger = Clogger.new(app, :logger => $stderr)
+    match_rss = /^VmRSS:\s+(\d+)/
+    if File.read(LINUX_PROC_PID_STATUS) =~ match_rss
+      before = $1.to_i
+      1000000.times { clogger.dup }
+      File.read(LINUX_PROC_PID_STATUS) =~ match_rss
+      after = $1.to_i
+      diff = after - before
+      assert(diff < 10000, "memory grew more than 10M: #{diff}")
+    end
+  end if RUBY_PLATFORM =~ /linux/ && test(?r, LINUX_PROC_PID_STATUS)
+
 end
