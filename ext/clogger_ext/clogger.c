@@ -472,7 +472,7 @@ static void append_response(struct clogger *c, VALUE key)
 {
 	VALUE v;
 
-	assert(rb_obj_class(c->headers) == cHeaderHash);
+	assert(rb_obj_is_kind_of(c->headers, cHeaderHash) && "not HeaderHash");
 
 	v = rb_funcall(c->headers, sq_brace_id, 1, key);
 	v = NIL_P(v) ? g_dash : byte_xs(v);
@@ -703,7 +703,8 @@ static VALUE ccall(struct clogger *c, VALUE env)
 		c->body = tmp[2];
 
 		rv = rb_ary_new4(3, tmp);
-		if (c->need_resp && cHeaderHash != rb_obj_class(c->headers)) {
+		if (c->need_resp &&
+                    ! rb_obj_is_kind_of(tmp[1], cHeaderHash)) {
 			c->headers = rb_funcall(cHeaderHash, new_id, 1, tmp[1]);
 			rb_ary_store(rv, 1, c->headers);
 		}
