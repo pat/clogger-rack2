@@ -284,7 +284,7 @@ static void append_status(struct clogger *c)
 		}
 	}
 
-	nr = NUM2INT(status);
+	nr = FIX2INT(status);
 	if (nr >= 100 && nr <= 999) {
 		nr = snprintf(buf, sizeof(buf), "%03d", nr);
 		assert(nr == 3);
@@ -522,7 +522,7 @@ static VALUE cwrite(struct clogger *c)
 
 	for (; --i >= 0; ary++) {
 		const VALUE *op = RARRAY_PTR(*ary);
-		enum clogger_opcode opcode = NUM2INT(op[0]);
+		enum clogger_opcode opcode = FIX2INT(op[0]);
 
 		switch (opcode) {
 		case CL_OP_LITERAL:
@@ -535,7 +535,7 @@ static VALUE cwrite(struct clogger *c)
 			append_response(c, op[1]);
 			break;
 		case CL_OP_SPECIAL:
-			special_var(c, NUM2INT(op[1]));
+			special_var(c, FIX2INT(op[1]));
 			break;
 		case CL_OP_EVAL:
 			append_eval(c, op[1]);
@@ -708,7 +708,7 @@ static VALUE ccall(struct clogger *c, VALUE env)
 			rb_ary_store(rv, 1, c->headers);
 		}
 	} else {
-		c->status = INT2NUM(500);
+		c->status = INT2FIX(500);
 		c->headers = c->body = rb_ary_new();
 		cwrite(c);
 		rb_raise(rb_eTypeError,

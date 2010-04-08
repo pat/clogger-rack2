@@ -587,6 +587,24 @@ class TestClogger < Test::Unit::TestCase
     assert ! cl.reentrant?
   end
 
+  def test_invalid_status
+    s = []
+    body = []
+    app = lambda { |env| [ env["force.status"], [ %w(a b) ], body ] }
+    o = { :logger => s, :format => "$status" }
+    cl = Clogger.new(app, o)
+    status, headers, body = cl.call(@req.merge("force.status" => -1))
+    assert_equal -1, status
+    assert_equal "-\n", s.last
+    status, headers, body = cl.call(@req.merge("force.status" => 1000))
+    assert_equal 1000, status
+    assert_equal "-\n", s.last
+    u64_max = 0xffffffffffffffff
+    status, headers, body = cl.call(@req.merge("force.status" => u64_max))
+    assert_equal u64_max, status
+    assert_equal "-\n", s.last
+  end
+
   # so we don't  care about the portability of this test
   # if it doesn't leak on Linux, it won't leak anywhere else
   # unless your C compiler or platform is otherwise broken
