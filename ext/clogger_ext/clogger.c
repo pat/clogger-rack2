@@ -105,7 +105,6 @@ static VALUE g_rack_errors;
 static VALUE g_rack_input;
 static VALUE g_rack_multithread;
 static VALUE g_dash;
-static VALUE g_empty;
 static VALUE g_space;
 static VALUE g_question_mark;
 static VALUE g_rack_request_cookie_hash;
@@ -813,7 +812,6 @@ void Init_clogger_ext(void)
 	CONST_GLOBAL_STR2(rack_input, "rack.input");
 	CONST_GLOBAL_STR2(rack_multithread, "rack.multithread");
 	CONST_GLOBAL_STR2(dash, "-");
-	CONST_GLOBAL_STR2(empty, "");
 	CONST_GLOBAL_STR2(space, " ");
 	CONST_GLOBAL_STR2(question_mark, "?");
 	CONST_GLOBAL_STR2(rack_request_cookie_hash, "rack.request.cookie_hash");
