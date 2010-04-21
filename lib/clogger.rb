@@ -2,7 +2,7 @@
 autoload :Rack, 'rack'
 
 class Clogger
-  VERSION = '0.3.2'
+  VERSION = '0.4.0'
 
   OP_LITERAL = 0
   OP_REQUEST = 1
