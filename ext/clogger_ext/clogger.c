@@ -119,7 +119,7 @@ static void init_buffers(struct clogger *c)
 static inline int need_escape(unsigned c)
 {
 	assert(c <= 0xff);
-	return !!(c == '\'' || c == '"' || (c >= 0 && c <= 0x1f));
+	return !!(c == '\'' || c == '"' || c <= 0x1f);
 }
 
 /* we are encoding-agnostic, clients can send us all sorts of junk */
@@ -217,7 +217,7 @@ static void write_full(int fd, const void *buf, size_t count)
 	while (count > 0) {
 		r = write(fd, buf, count);
 
-		if (r == count) { /* overwhelmingly likely */
+		if ((size_t)r == count) { /* overwhelmingly likely */
 			return;
 		} else if (r > 0) {
 			count -= r;
@@ -236,15 +236,15 @@ static void write_full(int fd, const void *buf, size_t count)
  * allow us to use write_full() iff we detect a blocking file
  * descriptor that wouldn't play nicely with Ruby threading/fibers
  */
-static int raw_fd(VALUE fileno)
+static int raw_fd(VALUE my_fileno)
 {
 #if defined(HAVE_FCNTL) && defined(F_GETFL) && defined(O_NONBLOCK)
 	int fd;
 	int flags;
 
-	if (NIL_P(fileno))
+	if (NIL_P(my_fileno))
 		return -1;
-	fd = NUM2INT(fileno);
+	fd = NUM2INT(my_fileno);
 
 	flags = fcntl(fd, F_GETFL);
 	if (flags < 0)
@@ -317,7 +317,7 @@ static void append_body_bytes_sent(struct clogger *c)
 	const char *fmt = sizeof(off_t) == sizeof(long) ? "%ld" : "%lld";
 	int nr = snprintf(buf, sizeof(buf), fmt, c->body_bytes_sent);
 
-	assert(nr > 0 && nr < sizeof(buf));
+	assert(nr > 0 && nr < (int)sizeof(buf));
 	rb_str_buf_cat(c->log_buf, buf, nr);
 }
 
@@ -326,11 +326,11 @@ static void append_tv(struct clogger *c, const VALUE *op, struct timeval *tv)
 	char buf[sizeof(".000000") + ((sizeof(tv->tv_sec) * 8) / 3)];
 	int nr;
 	char *fmt = RSTRING_PTR(op[1]);
-	int div = NUM2INT(op[2]);
+	int ndiv = NUM2INT(op[2]);
 
 	nr = snprintf(buf, sizeof(buf), fmt,
-		      (int)tv->tv_sec, (int)(tv->tv_usec / div));
-	assert(nr > 0 && nr < sizeof(buf));
+		      (int)tv->tv_sec, (int)(tv->tv_usec / ndiv));
+	assert(nr > 0 && nr < (int)sizeof(buf));
 	rb_str_buf_cat(c->log_buf, buf, nr);
 }
 
@@ -429,7 +429,7 @@ static void append_pid(struct clogger *c)
 	char buf[(sizeof(pid_t) * 8) / 3 + 1];
 	int nr = snprintf(buf, sizeof(buf), "%d", (int)getpid());
 
-	assert(nr > 0 && nr < sizeof(buf));
+	assert(nr > 0 && nr < (int)sizeof(buf));
 	rb_str_buf_cat(c->log_buf, buf, nr);
 }
 
