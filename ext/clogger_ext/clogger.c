@@ -143,7 +143,7 @@ static VALUE byte_xs_str(VALUE from)
 	if (new_len == len)
 		return from;
 
-	rv = rb_str_new(0, new_len);
+	rv = rb_str_new(NULL, new_len);
 	new_ptr = (unsigned char *)RSTRING_PTR(rv);
 	ptr = (unsigned char *)RSTRING_PTR(from);
 	for (; --len >= 0; ptr++) {
@@ -591,8 +591,9 @@ static VALUE clogger_init(int argc, VALUE *argv, VALUE self)
 
 		c->logger = rb_hash_aref(o, ID2SYM(rb_intern("logger")));
 		if (!NIL_P(c->logger)) {
-			rb_rescue(obj_enable_sync, c->logger, 0, 0);
-			c->fd = raw_fd(rb_rescue(obj_fileno, c->logger, 0, 0));
+			rb_rescue(obj_enable_sync, c->logger, NULL, 0);
+			tmp = rb_rescue(obj_fileno, c->logger, NULL, 0);
+			c->fd = raw_fd(tmp);
 		}
 
 		tmp = rb_hash_aref(o, ID2SYM(rb_intern("format")));
