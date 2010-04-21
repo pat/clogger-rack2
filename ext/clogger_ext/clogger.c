@@ -709,12 +709,14 @@ static VALUE ccall(struct clogger *c, VALUE env)
 			rb_ary_store(rv, 1, c->headers);
 		}
 	} else {
+		volatile VALUE tmp = rb_inspect(rv);
+
 		c->status = INT2FIX(500);
 		c->headers = c->body = rb_ary_new();
 		cwrite(c);
 		rb_raise(rb_eTypeError,
 		         "app response not a 3 element Array: %s",
-			 RSTRING_PTR(rb_inspect(rv)));
+			 RSTRING_PTR(tmp));
 	}
 
 	return rv;
