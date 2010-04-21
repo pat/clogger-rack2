@@ -1,4 +1,6 @@
 # -*- encoding: binary -*-
+autoload :Rack, 'rack'
+
 class Clogger
   VERSION = '0.3.2'
 

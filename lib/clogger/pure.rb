@@ -1,13 +1,14 @@
 # -*- encoding: binary -*-
 # :stopdoc:
 
-require 'rack'
-
 # Not at all optimized for performance, this was written based on
 # the original C extension code so it's not very Ruby-ish...
 class Clogger
 
   def initialize(app, opts = {})
+    # trigger autoload to avoid thread-safety issues later on
+    Rack::Utils::HeaderHash.new({})
+
     @app = app
     @logger = opts[:logger]
     (@logger.sync = true) rescue nil

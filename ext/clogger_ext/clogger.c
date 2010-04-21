@@ -776,21 +776,10 @@ static VALUE clogger_init_copy(VALUE clone, VALUE orig)
 
 #define CONST_GLOBAL_STR(val) CONST_GLOBAL_STR2(val, #val)
 
-static void init_rack_utils_header_hash(void)
-{
-	VALUE mRack, mUtils;
-#if 0
-  extra double quotes below are to disable rdoc (and so is avoiding comments)
-  let me know if there is a better way...
-#endif
-	rb_require("rack");
-	mRack = rb_define_module("Rack""");
-	mUtils = rb_define_module_under(mRack, "Utils""");
-	cHeaderHash = rb_define_class_under(mUtils, "HeaderHash""", rb_cHash);
-}
-
 void Init_clogger_ext(void)
 {
+	VALUE tmp;
+
 	ltlt_id = rb_intern("<<");
 	call_id = rb_intern("call");
 	each_id = rb_intern("each");
@@ -826,5 +815,8 @@ void Init_clogger_ext(void)
 	CONST_GLOBAL_STR2(space, " ");
 	CONST_GLOBAL_STR2(question_mark, "?");
 	CONST_GLOBAL_STR2(rack_request_cookie_hash, "rack.request.cookie_hash");
-	init_rack_utils_header_hash();
+
+	tmp = rb_const_get(rb_cObject, rb_intern("Rack"));
+	tmp = rb_const_get(tmp, rb_intern("Utils"));
+	cHeaderHash = rb_const_get(tmp, rb_intern("HeaderHash"));
 }
