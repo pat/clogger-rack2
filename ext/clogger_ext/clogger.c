@@ -213,15 +213,16 @@ static VALUE obj_enable_sync(VALUE obj)
 static void write_full(int fd, const void *buf, size_t count)
 {
 	ssize_t r;
+	unsigned long ubuf = (unsigned long)buf;
 
 	while (count > 0) {
-		r = write(fd, buf, count);
+		r = write(fd, (void *)ubuf, count);
 
 		if ((size_t)r == count) { /* overwhelmingly likely */
 			return;
 		} else if (r > 0) {
 			count -= r;
-			buf += r;
+			ubuf += r;
 		} else {
 			if (errno == EINTR || errno == EAGAIN)
 				continue; /* poor souls on NFS and like: */
