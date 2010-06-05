@@ -22,11 +22,24 @@ clean:
 	-$(MAKE) -C ext/clogger_ext clean
 	$(RM) ext/clogger_ext/Makefile lib/clogger_ext.$(DLEXT)
 
-test-ext: ext/clogger_ext/clogger.$(DLEXT)
-	$(RUBY) -Iext/clogger_ext:lib test/test_clogger.rb
+test_unit := $(wildcard test/test_*.rb)
+test-unit: $(test_unit)
+
+ifeq ($(CLOGGER_PURE),)
+$(test_unit): export RUBYLIB := ext/clogger_ext:lib
+$(test_unit): ext/clogger_ext/clogger.$(DLEXT)
+else
+$(test_unit): export RUBYLIB := lib
+endif
+
+$(test_unit):
+	$(RUBY) $@
+
+test-ext:
+	$(MAKE) test-unit
 
 test-pure:
-	CLOGGER_PURE=t $(RUBY) -Ilib test/test_clogger.rb
+	CLOGGER_PURE=t $(MAKE) test-unit
 
 test: test-ext test-pure
 
@@ -145,3 +158,4 @@ gem install-gem: GIT-VERSION-FILE
 endif
 
 .PHONY: .FORCE-GIT-VERSION-FILE test doc manifest
+.PHONY: test test-ext test-pure $(test_unit)
