@@ -10,7 +10,7 @@ is customizable so you can specify exactly which fields to log.
 * highly customizable with easy-to-read nginx-like log format variables.
 
 * pre-defines Apache Common Log Format, Apache Combined Log Format and
-  Rack::CommonLogger (as distributed by Rack 1.0) formats.
+  Rack::CommonLogger (as distributed by Rack 1.0 and 1.1) formats.
   See Clogger::Format for the predefined formats.
 
 * Untrusted values are escaped (all HTTP headers, request URI components)
