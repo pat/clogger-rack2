@@ -824,6 +824,11 @@ static VALUE to_path(VALUE self)
 	else
 		rv = stat(cpath, &sb);
 
+	/*
+	 * calling this method implies the web server will bypass
+	 * the each method where body_bytes_sent is calculated,
+	 * so we stat and set that value here.
+	 */
 	c->body_bytes_sent = rv == 0 ? sb.st_size : 0;
 	return path;
 }
