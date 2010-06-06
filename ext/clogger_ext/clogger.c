@@ -246,15 +246,15 @@ static void write_full(int fd, const void *buf, size_t count)
  * allow us to use write_full() iff we detect a blocking file
  * descriptor that wouldn't play nicely with Ruby threading/fibers
  */
-static int raw_fd(VALUE my_fileno)
+static int raw_fd(VALUE my_fd)
 {
 #if defined(HAVE_FCNTL) && defined(F_GETFL) && defined(O_NONBLOCK)
 	int fd;
 	int flags;
 
-	if (NIL_P(my_fileno))
+	if (NIL_P(my_fd))
 		return -1;
-	fd = NUM2INT(my_fileno);
+	fd = NUM2INT(my_fd);
 
 	flags = fcntl(fd, F_GETFL);
 	if (flags < 0)
