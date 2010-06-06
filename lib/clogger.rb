@@ -1,5 +1,5 @@
 # -*- encoding: binary -*-
-autoload :Rack, 'rack'
+require 'rack'
 
 # See the README for usage instructions
 class Clogger
