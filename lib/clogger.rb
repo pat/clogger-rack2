@@ -151,7 +151,7 @@ end
 require 'clogger/format'
 
 begin
-  raise LoadError if ENV['CLOGGER_PURE']
+  raise LoadError if ENV['CLOGGER_PURE'].to_i != 0
   require 'clogger_ext'
 rescue LoadError
   require 'clogger/pure'
