@@ -1,9 +1,13 @@
 # -*- encoding: binary -*-
 autoload :Rack, 'rack'
 
+# See the README for usage instructions
 class Clogger
+
+  # the version of Clogger, currently 0.4.0
   VERSION = '0.4.0'
 
+  # :stopdoc:
   OP_LITERAL = 0
   OP_REQUEST = 1
   OP_RESPONSE = 2
@@ -141,6 +145,7 @@ private
     end
   end
 
+  # :startdoc:
 end
 
 require 'clogger/format'

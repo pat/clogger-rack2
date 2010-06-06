@@ -73,7 +73,7 @@ atom = <link rel="alternate" title="Atom feed" href="$(1)" \
              type="application/atom+xml"/>
 
 doc: .document NEWS ChangeLog
-	rdoc -Na -t "$(shell sed -ne '1s/^= //p' README)"
+	rdoc -a -t "$(shell sed -ne '1s/^= //p' README)"
 	install -m644 COPYING doc/COPYING
 	install -m644 $(shell grep '^[A-Z]' .document)  doc/
 	$(RUBY) -i -p -e \
