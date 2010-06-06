@@ -41,5 +41,5 @@ is customizable so you can specify exactly which fields to log.
   s.add_dependency(%q<rack>, ["> 0.9"])
   s.extensions = %w(ext/clogger_ext/extconf.rb)
 
-  # s.license = "LGPLv3" # disabled for compatibility with older RubyGems
+  # s.license = "LGPLv2.1+" # disabled for compatibility with older RubyGems
 end
