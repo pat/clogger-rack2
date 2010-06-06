@@ -35,7 +35,7 @@ is customizable so you can specify exactly which fields to log.
   s.require_paths = %w(lib ext)
   s.rubyforge_project = %q{clogger}
   s.summary = %q{configurable request logging for Rack}
-  s.test_files = %w(test/test_clogger.rb)
+  s.test_files = %w(test/test_clogger.rb test/test_clogger_to_path.rb)
 
   # HeaderHash wasn't case-insensitive in old versions
   s.add_dependency(%q<rack>, ["> 0.9"])
