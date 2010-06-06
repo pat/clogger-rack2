@@ -260,7 +260,17 @@ static int raw_fd(VALUE my_fd)
 	if (flags < 0)
 		rb_sys_fail("fcntl");
 
-	return (flags & O_NONBLOCK) ? -1 : fd;
+	if (flags & O_NONBLOCK) {
+		struct stat sb;
+
+		if (fstat(fd, &sb) < 0)
+			return -1;
+
+		/* O_NONBLOCK is no-op for regular files: */
+		if (! S_ISREG(sb.st_mode))
+			return -1;
+	}
+	return fd;
 #else /* platforms w/o fcntl/F_GETFL/O_NONBLOCK */
 	return -1;
 #endif /* platforms w/o fcntl/F_GETFL/O_NONBLOCK */
