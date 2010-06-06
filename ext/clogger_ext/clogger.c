@@ -806,6 +806,7 @@ static VALUE to_path(VALUE self)
 	VALUE path = rb_funcall(c->body, to_path_id, 0);
 	struct stat sb;
 	int rv;
+	unsigned devfd;
 	const char *cpath;
 
 	Check_Type(path, T_STRING);
@@ -815,11 +816,11 @@ static VALUE to_path(VALUE self)
 	if (rb_respond_to(c->body, to_io_id))
 		rv = fstat(my_fileno(c->body), &sb);
 	/*
-	 * Rainbows! can use "/dev/fd/%d" in to_path output to avoid
+	 * Rainbows! can use "/dev/fd/%u" in to_path output to avoid
 	 * extra open() syscalls, too.
 	 */
-	else if (sscanf(cpath, "/dev/fd/%d", &rv) == 1)
-		rv = fstat(rv, &sb);
+	else if (sscanf(cpath, "/dev/fd/%u", &devfd) == 1)
+		rv = fstat((int)devfd, &sb);
 	else
 		rv = stat(cpath, &sb);
 
