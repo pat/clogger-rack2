@@ -5,6 +5,9 @@
 # the original C extension code so it's not very Ruby-ish...
 class Clogger
 
+  attr_accessor :env, :status, :headers, :body
+  attr_writer :body_bytes_sent
+
   def initialize(app, opts = {})
     # trigger autoload to avoid thread-safety issues later on
     Rack::Utils::HeaderHash.new({})
@@ -30,8 +33,13 @@ class Clogger
     headers = Rack::Utils::HeaderHash.new(headers) if @need_resp
     if @wrap_body
       @reentrant = env['rack.multithread'] if @reentrant.nil?
-      @env, @status, @headers, @body = env, status, headers, body
-      return [ status, headers, @reentrant ? self.dup : self ]
+      wbody = @reentrant ? self.dup : self
+      wbody.env = env
+      wbody.status = status
+      wbody.headers = headers
+      wbody.body = body
+      wbody = Clogger::ToPath.new(wbody) if body.respond_to?(:to_path)
+      return [ status, headers, wbody ]
     end
     log(env, status, headers)
     [ status, headers, body ]
@@ -137,6 +145,18 @@ private
         raise "EDOOFUS #{op.inspect}"
       end
     }.join('')
+  end
+
+  class ToPath
+    def to_path
+      rv = (body = clogger.body).to_path
+
+      # try to avoid unnecessary path lookups with to_io.stat instead of
+      # File.stat
+      clogger.body_bytes_sent =
+        (body.respond_to?(:to_io) ? body.to_io.stat : File.stat(rv)).size
+      rv
+    end
   end
 
 end

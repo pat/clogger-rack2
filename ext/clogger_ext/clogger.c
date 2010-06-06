@@ -1,8 +1,14 @@
 #define _BSD_SOURCE
 #include <ruby.h>
+#ifdef HAVE_RUBY_IO_H
+#  include <ruby/io.h>
+#else
+#  include <rubyio.h>
+#endif
 #include <assert.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/time.h>
 #include <time.h>
 #include <errno.h>
@@ -89,7 +95,10 @@ static ID to_s_id;
 static ID size_id;
 static ID sq_brace_id;
 static ID new_id;
+static ID to_path_id;
+static ID to_io_id;
 static VALUE cClogger;
+static VALUE cToPath;
 static VALUE mFormat;
 static VALUE cHeaderHash;
 
@@ -638,7 +647,7 @@ static VALUE body_iter_i(VALUE str, VALUE memop)
 	return rb_yield(str);
 }
 
-static VALUE wrap_close(struct clogger *c)
+static VALUE body_close(struct clogger *c)
 {
 	if (rb_respond_to(c->body, close_id))
 		return rb_funcall(c->body, close_id, 0);
@@ -676,7 +685,7 @@ static VALUE clogger_close(VALUE self)
 {
 	struct clogger *c = clogger_get(self);
 
-	return rb_ensure(wrap_close, (VALUE)c, cwrite, (VALUE)c);
+	return rb_ensure(body_close, (VALUE)c, cwrite, (VALUE)c);
 }
 
 /* :nodoc: */
@@ -748,6 +757,9 @@ static VALUE clogger_call(VALUE self, VALUE env)
 
 		rv = ccall(c, env);
 		assert(!OBJ_FROZEN(rv) && "frozen response array");
+
+		if (rb_respond_to(c->body, to_path_id))
+			self = rb_funcall(cToPath, new_id, 1, self);
 		rb_ary_store(rv, 2, self);
 
 		return rv;
@@ -778,6 +790,33 @@ static VALUE clogger_init_copy(VALUE clone, VALUE orig)
 
 #define CONST_GLOBAL_STR(val) CONST_GLOBAL_STR2(val, #val)
 
+static VALUE to_path(VALUE self)
+{
+	struct clogger *c = clogger_get(RSTRUCT_PTR(self)[0]);
+	VALUE path = rb_funcall(c->body, to_path_id, 0);
+	struct stat sb;
+	int rv;
+	const char *cpath;
+
+	Check_Type(path, T_STRING);
+	cpath = RSTRING_PTR(path);
+
+	/* try to avoid an extra path lookup  */
+	if (rb_respond_to(c->body, to_io_id))
+		rv = fstat(my_fileno(c->body), &sb);
+	/*
+	 * Rainbows! can use "/dev/fd/%d" in to_path output to avoid
+	 * extra open() syscalls, too.
+	 */
+	else if (sscanf(cpath, "/dev/fd/%d", &rv) == 1)
+		rv = fstat(rv, &sb);
+	else
+		rv = stat(cpath, &sb);
+
+	c->body_bytes_sent = rv == 0 ? sb.st_size : 0;
+	return path;
+}
+
 void Init_clogger_ext(void)
 {
 	VALUE tmp;
@@ -791,6 +830,8 @@ void Init_clogger_ext(void)
 	size_id = rb_intern("size");
 	sq_brace_id = rb_intern("[]");
 	new_id = rb_intern("new");
+	to_path_id = rb_intern("to_path");
+	to_io_id = rb_intern("to_io");
 	cClogger = rb_define_class("Clogger", rb_cObject);
 	mFormat = rb_define_module_under(cClogger, "Format");
 	rb_define_alloc_func(cClogger, clogger_alloc);
@@ -820,4 +861,6 @@ void Init_clogger_ext(void)
 	tmp = rb_const_get(rb_cObject, rb_intern("Rack"));
 	tmp = rb_const_get(tmp, rb_intern("Utils"));
 	cHeaderHash = rb_const_get(tmp, rb_intern("HeaderHash"));
+	cToPath = rb_const_get(cClogger, rb_intern("ToPath"));
+	rb_define_method(cToPath, "to_path", to_path, 0);
 }
