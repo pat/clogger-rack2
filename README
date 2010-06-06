@@ -24,10 +24,15 @@ is customizable so you can specify exactly which fields to log.
   \Clogger in a multi-threaded server, and even multiple Cloggers logging
   to different locations and different formats in the same process.
 
+* Pure Ruby version for non-MRI versions of Ruby (or via CLOGGER_PURE=1
+  in the environment).  The optional C extension is loaded by default
+  and supported under MRI 1.8.7, 1.9.1, and 1.9.2.
+
 == SYNOPSIS
 
 \Clogger may be loaded as Rack middleware in your config.ru:
 
+  # ENV['CLOGGER_PURE'] = '1' # uncomment to disable C extension
   require "clogger"
   use Clogger,
       :format => Clogger::Format::Combined,

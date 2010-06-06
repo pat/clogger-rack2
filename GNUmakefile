@@ -36,10 +36,10 @@ $(test_unit):
 	$(RUBY) $@
 
 test-ext:
-	$(MAKE) test-unit
+	CLOGGER_PURE=0 $(MAKE) test-unit
 
 test-pure:
-	CLOGGER_PURE=t $(MAKE) test-unit
+	CLOGGER_PURE=1 $(MAKE) test-unit
 
 test: test-ext test-pure
 
