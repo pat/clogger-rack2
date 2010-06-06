@@ -43,12 +43,13 @@ class Clogger
       @body_bytes_sent += Rack::Utils.bytesize(part)
       yield part
     end
-    ensure
-      log(@env, @status, @headers)
+    self
   end
 
   def close
     @body.close if @body.respond_to?(:close)
+    ensure
+      log(@env, @status, @headers)
   end
 
   def reentrant?

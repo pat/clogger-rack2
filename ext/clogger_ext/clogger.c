@@ -638,12 +638,11 @@ static VALUE body_iter_i(VALUE str, VALUE memop)
 	return rb_yield(str);
 }
 
-static VALUE wrap_each(struct clogger *c)
+static VALUE wrap_close(struct clogger *c)
 {
-	c->body_bytes_sent = 0;
-	rb_iterate(rb_each, c->body, body_iter_i, (VALUE)&c->body_bytes_sent);
-
-	return c->body;
+	if (rb_respond_to(c->body, close_id))
+		return rb_funcall(c->body, close_id, 0);
+	return Qnil;
 }
 
 /**
@@ -659,8 +658,10 @@ static VALUE clogger_each(VALUE self)
 	struct clogger *c = clogger_get(self);
 
 	rb_need_block();
+	c->body_bytes_sent = 0;
+	rb_iterate(rb_each, c->body, body_iter_i, (VALUE)&c->body_bytes_sent);
 
-	return rb_ensure(wrap_each, (VALUE)c, cwrite, (VALUE)c);
+	return self;
 }
 
 /**
@@ -675,9 +676,7 @@ static VALUE clogger_close(VALUE self)
 {
 	struct clogger *c = clogger_get(self);
 
-	if (rb_respond_to(c->body, close_id))
-		return rb_funcall(c->body, close_id, 0);
-	return Qnil;
+	return rb_ensure(wrap_close, (VALUE)c, cwrite, (VALUE)c);
 }
 
 /* :nodoc: */

@@ -55,6 +55,7 @@ class TestClogger < Test::Unit::TestCase
     assert_equal("302 Found", status)
     assert_equal({}, headers)
     body.each { |part| assert false }
+    body.close
     str = str.string
     r = %r{\Ahome - - \[[^\]]+\] "GET /hello\?goodbye=true HTTP/1.0" 302 -\n\z}
     assert_match r, str
@@ -134,7 +135,9 @@ class TestClogger < Test::Unit::TestCase
       'HTTP_COOKIE' => cookie,
     }
     req = @req.merge(req)
-    cl.call(req).last.each { |part| part }
+    body = cl.call(req).last
+    body.each { |part| part }
+    body.close
     str = str.string
     assert(str.size > 128)
     assert_match %r["echo and socat \\o/" "#{cookie}" \d+\.\d{3}], str
@@ -221,6 +224,7 @@ class TestClogger < Test::Unit::TestCase
     status, headers, body = cl.call(@req)
     tmp = []
     body.each { |s| tmp << s }
+    body.close
     assert_equal %w(a b c), tmp
     str = str.string
     assert_match %r[" 200 3 \d+\.\d{4}\n\z], str
@@ -279,6 +283,7 @@ class TestClogger < Test::Unit::TestCase
     cl = Clogger.new(app, :logger => str, :format => '$response_length')
     status, header, bodies = cl.call(@req)
     bodies.each { |part| part }
+    bodies.close
     assert_equal "-\n", str.string
   end
 
@@ -290,6 +295,7 @@ class TestClogger < Test::Unit::TestCase
     status, headers, body = cl.call(@req)
     tmp = []
     body.each { |s| tmp << s }
+    body.close
     assert_equal %w(a b c), tmp
     str = str.string
     assert_match %r[" 200 3 "-" "echo and socat \\o/"\n\z], str
@@ -402,7 +408,7 @@ class TestClogger < Test::Unit::TestCase
     req = Rack::Utils::HeaderHash.new(@req)
     app = lambda { |env| [302, [ %w(a) ], []] }
     cl = Clogger.new(app, :logger => str, :format => Rack_1_0)
-    assert_nothing_raised { cl.call(req).last.each {} }
+    assert_nothing_raised { cl.call(req).last.each {}.close }
     assert str.size > 0
   end
 
@@ -415,7 +421,7 @@ class TestClogger < Test::Unit::TestCase
     }
     app = lambda { |env| [302, [ %w(a) ], []] }
     cl = Clogger.new(app, :logger => str, :format => Rack_1_0)
-    assert_nothing_raised { cl.call(req).last.each {} }
+    assert_nothing_raised { cl.call(req).last.each {}.close }
     assert str.size > 0
   end
 
@@ -425,7 +431,7 @@ class TestClogger < Test::Unit::TestCase
     r = nil
     app = lambda { |env| [302, [ %w(a) ], [FooString.new(body)]] }
     cl = Clogger.new(app, :logger => str, :format => '$body_bytes_sent')
-    assert_nothing_raised { cl.call(@req).last.each { |x| r = x } }
+    assert_nothing_raised { cl.call(@req).last.each { |x| r = x }.close }
     assert str.size > 0
     assert_equal body.size.to_s << "\n", str.string
     assert_equal r, body
