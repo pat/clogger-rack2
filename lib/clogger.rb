@@ -4,8 +4,8 @@ require 'rack'
 # See the README for usage instructions
 class Clogger
 
-  # the version of Clogger, currently 0.4.0
-  VERSION = '0.4.0'
+  # the version of Clogger, currently 0.5.0
+  VERSION = '0.5.0'
 
   # :stopdoc:
   OP_LITERAL = 0
