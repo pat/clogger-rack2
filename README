@@ -36,7 +36,7 @@ is customizable so you can specify exactly which fields to log.
   require "clogger"
   use Clogger,
       :format => Clogger::Format::Combined,
-      :logger => ::File.open("/path/to/log", "ab"),
+      :path => "/path/to/log",
       :reentrant => true
   run YourApplication.new
 
@@ -45,8 +45,14 @@ somewhere inside the "Rails::Initializer.run do |config|" block:
 
   config.middleware.use 'Clogger',
       :format => Clogger::Format::Combined,
-      :logger => ::File.open("/path/to/log", "ab"),
+      :path => "/path/to/log",
       :reentrant => false
+
+Instead of specifying a :path, you may also specify a :logger object
+that receives a "<<" method:
+
+  use Clogger, :logger=> $stdout, :reentrant => true
+  run YourApplication.new
 
 == VARIABLES
 

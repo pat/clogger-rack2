@@ -3,6 +3,7 @@ $stderr.sync = $stdout.sync = true
 require "test/unit"
 require "date"
 require "stringio"
+require "tempfile"
 
 require "rack"
 
@@ -629,4 +630,21 @@ class TestClogger < Test::Unit::TestCase
     end
   end if RUBY_PLATFORM =~ /linux/ && File.readable?(LINUX_PROC_PID_STATUS)
 
+  def test_path_open_file
+    tmp = Tempfile.new('test_clogger')
+    app = lambda { |env| [ 200, {}, [] ] }
+    app = Clogger.new(app, :format => '$status', :path => tmp.path)
+    assert_kind_of Integer, app.fileno
+    assert app.fileno != tmp.fileno
+    status, headers, body = app.call(@req)
+    assert_equal "200\n", tmp.read
+  end
+
+  def test_path_logger_conflict
+    tmp = Tempfile.new('test_clogger')
+    app = lambda { |env| [ 200, {}, [] ] }
+    assert_raises(ArgumentError) {
+      Clogger.new(app, :logger=> $stderr, :path => tmp.path)
+    }
+  end
 end

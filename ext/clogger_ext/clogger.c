@@ -213,11 +213,6 @@ static VALUE obj_fileno(VALUE obj)
 	return rb_funcall(obj, rb_intern("fileno"), 0);
 }
 
-static VALUE obj_enable_sync(VALUE obj)
-{
-	return rb_funcall(obj, rb_intern("sync="), 1, Qtrue);
-}
-
 /* only for writing to regular files, not stupid crap like NFS  */
 static void write_full(int fd, const void *buf, size_t count)
 {
@@ -588,12 +583,35 @@ static VALUE cwrite(struct clogger *c)
 	return Qnil;
 }
 
+static void init_logger(struct clogger *c, VALUE path)
+{
+	ID id;
+
+	if (!NIL_P(path) && !NIL_P(c->logger))
+		rb_raise(rb_eArgError, ":logger and :path are independent");
+	if (!NIL_P(path)) {
+		VALUE ab = rb_str_new2("ab");
+		id = rb_intern("open");
+		c->logger = rb_funcall(rb_cFile, id, 2, path, ab);
+	}
+
+	id = rb_intern("sync=");
+	if (rb_respond_to(c->logger, id))
+		rb_funcall(c->logger, id, 1, Qtrue);
+
+	id = rb_intern("fileno");
+	if (rb_respond_to(c->logger, id))
+		c->fd = raw_fd(rb_funcall(c->logger, id, 0));
+}
+
 /**
  * call-seq:
  *   Clogger.new(app, :logger => $stderr, :format => string) => obj
  *
  * Creates a new Clogger object that wraps +app+.  +:logger+ may
  * be any object that responds to the "<<" method with a string argument.
+ * If +:logger:+ is a string, it will be treated as a path to a
+ * File that will be opened in append mode.
  */
 static VALUE clogger_init(int argc, VALUE *argv, VALUE self)
 {
@@ -609,12 +627,9 @@ static VALUE clogger_init(int argc, VALUE *argv, VALUE self)
 	if (TYPE(o) == T_HASH) {
 		VALUE tmp;
 
+		tmp = rb_hash_aref(o, ID2SYM(rb_intern("path")));
 		c->logger = rb_hash_aref(o, ID2SYM(rb_intern("logger")));
-		if (!NIL_P(c->logger)) {
-			rb_rescue(obj_enable_sync, c->logger, NULL, 0);
-			tmp = rb_rescue(obj_fileno, c->logger, NULL, 0);
-			c->fd = raw_fd(tmp);
-		}
+		init_logger(c, tmp);
 
 		tmp = rb_hash_aref(o, ID2SYM(rb_intern("format")));
 		if (!NIL_P(tmp))

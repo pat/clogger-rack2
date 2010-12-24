@@ -14,7 +14,12 @@ class Clogger
 
     @app = app
     @logger = opts[:logger]
-    (@logger.sync = true) rescue nil
+    path = opts[:path]
+    path && @logger and
+      raise ArgumentError, ":logger and :path are independent"
+    path and @logger = File.open(path, "ab")
+
+    @logger.sync = true if @logger.respond_to?(:sync=)
     @fmt_ops = compile_format(opts[:format] || Format::Common, opts)
     @wrap_body = need_wrap_body?(@fmt_ops)
     @reentrant = opts[:reentrant]
@@ -69,7 +74,7 @@ class Clogger
   end
 
   def fileno
-    @logger.fileno rescue nil
+    @logger.respond_to?(:fileno) ? @logger.fileno : nil
   end
 
 private
