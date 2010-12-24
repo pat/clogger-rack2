@@ -647,4 +647,14 @@ class TestClogger < Test::Unit::TestCase
       Clogger.new(app, :logger=> $stderr, :path => tmp.path)
     }
   end
+
+  def test_request_time
+    s = []
+    app = lambda { |env| sleep(0.1) ; [302, [], [] ] }
+    cl = Clogger.new(app, :logger => s, :format => "$request_time")
+    status, headers, body = cl.call(@req)
+    assert_nothing_raised { body.each { |x| } ; body.close }
+    assert s[-1].to_f >= 0.100
+    assert s[-1].to_f <= 0.110
+  end
 end

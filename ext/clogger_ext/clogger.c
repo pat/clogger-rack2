@@ -1,4 +1,5 @@
-#define _BSD_SOURCE
+#define _POSIX_C_SOURCE 200112L
+#include <time.h>
 #include <ruby.h>
 #ifdef HAVE_RUBY_IO_H
 #  include <ruby/io.h>
@@ -10,25 +11,21 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <time.h>
 #include <errno.h>
 #ifdef HAVE_FCNTL_H
 #  include <fcntl.h>
 #endif
 #include "ruby_1_9_compat.h"
 
-/* in case _BSD_SOURCE doesn't give us this macro */
-#ifndef timersub
-#  define timersub(a, b, result) \
-do { \
-	(result)->tv_sec = (a)->tv_sec - (b)->tv_sec; \
-	(result)->tv_usec = (a)->tv_usec - (b)->tv_usec; \
-	if ((result)->tv_usec < 0) { \
-		--(result)->tv_sec; \
-		(result)->tv_usec += 1000000; \
-	} \
-} while (0)
-#endif
+static void clock_diff(struct timespec *a, const struct timespec *b)
+{
+	a->tv_sec -= b->tv_sec;
+	a->tv_nsec -= b->tv_nsec;
+	if (a->tv_nsec < 0) {
+		--a->tv_sec;
+		a->tv_nsec += 1000000000;
+	}
+}
 
 /* give GCC hints for better branch prediction
  * (we layout branches so that ASCII characters are handled faster) */
@@ -78,7 +75,7 @@ struct clogger {
 	VALUE body;
 
 	off_t body_bytes_sent;
-	struct timeval tv_start;
+	struct timespec ts_start;
 
 	int fd;
 	int wrap_body;
@@ -336,34 +333,40 @@ static void append_body_bytes_sent(struct clogger *c)
 	rb_str_buf_cat(c->log_buf, buf, nr);
 }
 
-static void append_tv(struct clogger *c, const VALUE *op, struct timeval *tv)
+static void append_ts(struct clogger *c, const VALUE *op, struct timespec *ts)
 {
-	char buf[sizeof(".000000") + ((sizeof(tv->tv_sec) * 8) / 3)];
+	char buf[sizeof(".000000") + ((sizeof(ts->tv_sec) * 8) / 3)];
 	int nr;
 	char *fmt = RSTRING_PTR(op[1]);
 	int ndiv = NUM2INT(op[2]);
+	int usec = ts->tv_nsec / 1000;
 
 	nr = snprintf(buf, sizeof(buf), fmt,
-		      (int)tv->tv_sec, (int)(tv->tv_usec / ndiv));
+		      (int)ts->tv_sec, (int)(usec / ndiv));
 	assert(nr > 0 && nr < (int)sizeof(buf));
 	rb_str_buf_cat(c->log_buf, buf, nr);
 }
 
 static void append_request_time_fmt(struct clogger *c, const VALUE *op)
 {
-	struct timeval now, d;
+	struct timespec now;
+	int r = clock_gettime(CLOCK_MONOTONIC, &now);
 
-	gettimeofday(&now, NULL);
-	timersub(&now, &c->tv_start, &d);
-	append_tv(c, op, &d);
+	if (unlikely(r != 0))
+		rb_sys_fail("clock_gettime(CLOCK_MONONTONIC)");
+
+	clock_diff(&now, &c->ts_start);
+	append_ts(c, op, &now);
 }
 
 static void append_time_fmt(struct clogger *c, const VALUE *op)
 {
-	struct timeval now;
+	struct timespec now;
+	int r = clock_gettime(CLOCK_REALTIME, &now);
 
-	gettimeofday(&now, NULL);
-	append_tv(c, op, &now);
+	if (unlikely(r != 0))
+		rb_sys_fail("clock_gettime(CLOCK_REALTIME)");
+	append_ts(c, op, &now);
 }
 
 static void append_request_uri(struct clogger *c)
@@ -725,7 +728,7 @@ static VALUE ccall(struct clogger *c, VALUE env)
 {
 	VALUE rv;
 
-	gettimeofday(&c->tv_start, NULL);
+	clock_gettime(CLOCK_MONOTONIC, &c->ts_start);
 	c->env = env;
 	c->cookies = Qfalse;
 	rv = rb_funcall(c->app, call_id, 1, env);

@@ -13,6 +13,10 @@ begin
     have_macro('O_NONBLOCK', %w(unistd.h fcntl.h))
   end
 
+  unless have_macro('CLOCK_MONOTONIC', 'time.h', '-D_POSIX_C_SOURCE=200112L')
+    $CPPFLAGS += '-D_POSIX_SOURCE_200112L'
+    have_func('CLOCK_MONOTONIC', 'time.h')
+  end
   have_func('localtime_r', 'time.h') or raise "localtime_r needed"
   have_func('gmtime_r', 'time.h') or raise "gmtime_r needed"
   have_func('rb_str_set_len', 'ruby.h')
