@@ -36,7 +36,7 @@ $(test_unit):
 	$(RUBY) $@
 
 test-ext:
-	CLOGGER_PURE=0 $(MAKE) test-unit
+	CLOGGER_PURE= $(MAKE) test-unit
 
 test-pure:
 	CLOGGER_PURE=1 $(MAKE) test-unit
