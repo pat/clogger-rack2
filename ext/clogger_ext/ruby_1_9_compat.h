@@ -11,11 +11,13 @@
 #ifndef RARRAY_LEN
 #  define RARRAY_LEN(s) (RARRAY(s)->len)
 #endif
-#ifndef RSTRUCT_PTR
-#  define RSTRUCT_PTR(s) (RSTRUCT(s)->ptr)
-#endif
-#ifndef RSTRUCT_LEN
-#  define RSTRUCT_LEN(s) (RSTRUCT(s)->len)
+#ifndef RUBINIUS
+#  ifndef RSTRUCT_PTR
+#    define RSTRUCT_PTR(s) (RSTRUCT(s)->ptr)
+#  endif
+#  ifndef RSTRUCT_LEN
+#    define RSTRUCT_LEN(s) (RSTRUCT(s)->len)
+#  endif
 #endif
 
 #ifndef HAVE_RB_STR_SET_LEN

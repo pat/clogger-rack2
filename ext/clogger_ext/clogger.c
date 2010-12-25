@@ -818,9 +818,17 @@ static VALUE clogger_init_copy(VALUE clone, VALUE orig)
 
 #define CONST_GLOBAL_STR(val) CONST_GLOBAL_STR2(val, #val)
 
+#ifdef RSTRUCT_PTR
+#  define ToPath_clogger(tp) RSTRUCT_PTR(tp)[0]
+#else
+static ID clogger_id;
+#  define ToPath_clogger(tp) rb_funcall(tp,clogger_id,0)
+#endif
+
 static VALUE to_path(VALUE self)
 {
-	struct clogger *c = clogger_get(RSTRUCT_PTR(self)[0]);
+	VALUE my_clogger = ToPath_clogger(self);
+	struct clogger *c = clogger_get(my_clogger);
 	VALUE path = rb_funcall(c->body, to_path_id, 0);
 	struct stat sb;
 	int rv;
@@ -897,4 +905,7 @@ void Init_clogger_ext(void)
 	cHeaderHash = rb_const_get(tmp, rb_intern("HeaderHash"));
 	cToPath = rb_const_get(cClogger, rb_intern("ToPath"));
 	rb_define_method(cToPath, "to_path", to_path, 0);
+#ifndef RSTRUCT_PTR
+	clogger_id = rb_intern("clogger");
+#endif
 }
