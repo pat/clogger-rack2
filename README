@@ -1,7 +1,5 @@
 = \Clogger - configurable request logging for Rack
 
-== DESCRIPTION
-
 \Clogger is Rack middleware for logging HTTP requests.  The log format
 is customizable so you can specify exactly which fields to log.
 
@@ -26,7 +24,7 @@ is customizable so you can specify exactly which fields to log.
 
 * Pure Ruby version for non-MRI versions of Ruby (or via CLOGGER_PURE=1
   in the environment).  The optional C extension is loaded by default
-  and supported under MRI 1.8.7, 1.9.1, and 1.9.2.
+  and supported under MRI 1.8.7, 1.9.1, 1.9.2 and Rubinius.
 
 == SYNOPSIS
 
