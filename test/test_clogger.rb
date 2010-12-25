@@ -241,32 +241,52 @@ class TestClogger < Test::Unit::TestCase
     str = StringIO.new
     app = lambda { |env| [ 200, {}, [] ] }
     cl = Clogger.new(app, :logger => str, :format => '$msec')
+    a = Time.now.to_f - 0.001
     status, header, bodies = cl.call(@req)
     assert_match %r(\A\d+\.\d{3}\n\z), str.string
+    b = Time.now.to_f + 0.001
+    logged = str.string.to_f
+    assert logged >= a, "#{logged} >= #{a}"
+    assert logged <= b, "#{logged} <= #{b}"
   end
 
   def test_usec
     str = StringIO.new
     app = lambda { |env| [ 200, {}, [] ] }
     cl = Clogger.new(app, :logger => str, :format => '$usec')
+    a = Time.now.to_f - 0.000001
     status, header, bodies = cl.call(@req)
     assert_match %r(\A\d+\.\d{6}\n\z), str.string
+    b = Time.now.to_f + 0.000001
+    logged = str.string.to_f
+    assert logged >= a, "#{logged} >= #{a}"
+    assert logged <= b, "#{logged} <= #{b}"
   end
 
   def test_time_0
     str = StringIO.new
     app = lambda { |env| [ 200, {}, [] ] }
     cl = Clogger.new(app, :logger => str, :format => '$time{0}')
+    a = Time.now.to_f - 1
     status, header, bodies = cl.call(@req)
     assert_match %r(\A\d+\n\z), str.string
+    b = Time.now.to_f + 1
+    logged = str.string.to_f
+    assert logged >= a, "#{logged} >= #{a}"
+    assert logged <= b, "#{logged} <= #{b}"
   end
 
   def test_time_1
     str = StringIO.new
     app = lambda { |env| [ 200, {}, [] ] }
     cl = Clogger.new(app, :logger => str, :format => '$time{1}')
+    a = Time.now.to_f - 0.5
     status, header, bodies = cl.call(@req)
     assert_match %r(\A\d+\.\d\n\z), str.string
+    b = Time.now.to_f + 0.5
+    logged = str.string.to_f
+    assert logged >= a, "#{logged} >= #{a}"
+    assert logged <= b, "#{logged} <= #{b}"
   end
 
   def test_request_length
