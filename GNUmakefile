@@ -26,14 +26,14 @@ test_unit := $(wildcard test/test_*.rb)
 test-unit: $(test_unit)
 
 ifeq ($(CLOGGER_PURE),)
-$(test_unit): RUBYLIB := ext/clogger_ext:lib:$(RUBYLIB)
+$(test_unit): mylib := ext/clogger_ext:lib
 $(test_unit): ext/clogger_ext/clogger.$(DLEXT)
 else
-$(test_unit): RUBYLIB := lib:$(RUBYLIB)
+$(test_unit): mylib := lib
 endif
 
 $(test_unit):
-	RUBYLIB=$(RUBYLIB) $(RUBY) $@
+	$(RUBY) -I $(mylib) $@
 
 test-ext:
 	CLOGGER_PURE= $(MAKE) test-unit
