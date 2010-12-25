@@ -1,5 +1,3 @@
-#define _POSIX_C_SOURCE 200112L
-#include <time.h>
 #include <ruby.h>
 #ifdef HAVE_RUBY_IO_H
 #  include <ruby/io.h>
@@ -15,6 +13,8 @@
 #ifdef HAVE_FCNTL_H
 #  include <fcntl.h>
 #endif
+#define _POSIX_C_SOURCE 200112L
+#include <time.h>
 #include "ruby_1_9_compat.h"
 
 static void clock_diff(struct timespec *a, const struct timespec *b)
