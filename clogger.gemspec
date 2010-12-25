@@ -1,44 +1,28 @@
 ENV["VERSION"] or abort "VERSION= must be specified"
 manifest = File.readlines('.manifest').map! { |x| x.chomp! }
+require 'wrongdoc'
+extend Wrongdoc::Gemspec
+name, summary, title = readme_metadata
 
 Gem::Specification.new do |s|
   s.name = %q{clogger}
-  s.version = ENV["VERSION"]
-
-  if s.respond_to? :required_rubygems_version=
-    s.required_rubygems_version = Gem::Requirement.new(">= 0")
-  end
-  s.homepage = 'http://clogger.rubyforge.org/'
+  s.version = ENV["VERSION"].dup
+  s.homepage = Wrongdoc.config[:rdoc_url]
   s.authors = ["cloggers"]
   s.date = Time.now.utc.strftime('%Y-%m-%d')
-  s.description = %q{
-Clogger is Rack middleware for logging HTTP requests.  The log format
-is customizable so you can specify exactly which fields to log.
-}.strip
+  s.description = readme_description
   s.email = %q{clogger@librelist.com}
-
-  s.extra_rdoc_files = File.readlines('.document').map! do |x|
-    x.chomp!
-    if File.directory?(x)
-      manifest.grep(%r{\A#{x}/})
-    elsif File.file?(x)
-      x
-    else
-      nil
-    end
-  end.flatten.compact
-
+  s.extra_rdoc_files = extra_rdoc_files(manifest)
   s.files = manifest
-  s.rdoc_options = [ "-Na",
-                     "-t", "Clogger - configurable request logging for Rack"
-                   ]
+  s.rdoc_options = rdoc_options
   s.require_paths = %w(lib ext)
   s.rubyforge_project = %q{clogger}
-  s.summary = %q{configurable request logging for Rack}
+  s.summary = summary
   s.test_files = %w(test/test_clogger.rb test/test_clogger_to_path.rb)
 
   # HeaderHash wasn't case-insensitive in old versions
   s.add_dependency(%q<rack>, ["> 0.9"])
+  s.add_development_dependency(%q<wrongdoc>, "~> 1.0")
   s.extensions = %w(ext/clogger_ext/extconf.rb)
 
   # s.license = "LGPLv2.1+" # disabled for compatibility with older RubyGems

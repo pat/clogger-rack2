@@ -1,0 +1,5 @@
+---
+rdoc_url: http://clogger.rubyforge.org/
+cgit_url: http://git.bogomips.org/cgit/clogger.git
+git_url: git://git.bogomips.org/clogger.git
+changelog_since: 0.4.0
