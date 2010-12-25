@@ -57,7 +57,7 @@ private
          path_info query_string script_name
          server_name server_port
          auth_type gateway_interface server_software path_translated
-         ).join('|') << ')\z').freeze
+         ).join('|') << ')\z')
 
   SCAN = /([^$]*)(\$+(?:env\{\w+(?:\.[\w\.]+)?\}|
                         e\{[^\}]+\}|
@@ -73,28 +73,28 @@ private
 
       unless tok.nil?
         if tok.sub!(/\A(\$+)\$/, '$')
-          rv << [ OP_LITERAL, $1.dup ]
+          rv << [ OP_LITERAL, $1 ]
         end
 
         compat = ALIASES[tok] and tok = compat
 
         case tok
         when /\A(\$*)\z/
-          rv << [ OP_LITERAL, $1.dup ]
+          rv << [ OP_LITERAL, $1 ]
         when /\A\$env\{(\w+(?:\.[\w\.]+))\}\z/
-          rv << [ OP_REQUEST, $1.freeze ]
+          rv << [ OP_REQUEST, $1 ]
         when /\A\$e\{([^\}]+)\}\z/
-          rv << [ OP_EVAL, $1.dup ]
+          rv << [ OP_EVAL, $1 ]
         when /\A\$cookie_(\w+)\z/
-          rv << [ OP_COOKIE, $1.dup.freeze ]
+          rv << [ OP_COOKIE, $1 ]
         when CGI_ENV, /\A\$(http_\w+)\z/
-          rv << [ OP_REQUEST, $1.upcase.freeze ]
+          rv << [ OP_REQUEST, $1.upcase ]
         when /\A\$sent_http_(\w+)\z/
-          rv << [ OP_RESPONSE, $1.downcase.tr('_','-').freeze ]
+          rv << [ OP_RESPONSE, $1.downcase.tr('_','-') ]
         when /\A\$time_local\{([^\}]+)\}\z/
-          rv << [ OP_TIME_LOCAL, $1.dup ]
+          rv << [ OP_TIME_LOCAL, $1 ]
         when /\A\$time_utc\{([^\}]+)\}\z/
-          rv << [ OP_TIME_UTC, $1.dup ]
+          rv << [ OP_TIME_UTC, $1 ]
         when /\A\$time\{(\d+)\}\z/
           rv << [ OP_TIME, *usec_conv_pair(tok, $1.to_i) ]
         when /\A\$request_time\{(\d+)\}\z/
