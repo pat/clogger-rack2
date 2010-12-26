@@ -133,6 +133,7 @@ release: verify package $(release_notes) $(release_changes)
 	gem push $(pkggem)
 	rubyforge add_file \
 	  $(rfproject) $(rfpackage) $(VERSION) $(pkggem)
+	$(RAKE) publish_news VERSION=$(VERSION)
 else
 gem install-gem: GIT-VERSION-FILE
 	$(MAKE) $@ VERSION=$(GIT_VERSION)
