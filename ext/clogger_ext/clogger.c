@@ -205,11 +205,6 @@ static struct clogger *clogger_get(VALUE self)
 	return c;
 }
 
-static VALUE obj_fileno(VALUE obj)
-{
-	return rb_funcall(obj, rb_intern("fileno"), 0);
-}
-
 /* only for writing to regular files, not stupid crap like NFS  */
 static void write_full(int fd, const void *buf, size_t count)
 {
