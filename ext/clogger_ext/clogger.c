@@ -16,6 +16,7 @@
 #define _POSIX_C_SOURCE 200112L
 #include <time.h>
 #include "ruby_1_9_compat.h"
+#include "broken_system_compat.h"
 
 static void clock_diff(struct timespec *a, const struct timespec *b)
 {
