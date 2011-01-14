@@ -50,6 +50,7 @@ class TestCloggerToPath < Test::Unit::TestCase
 
     status, headers, body = app.call(@req)
     assert_instance_of(Clogger::ToPath, body)
+    assert body.respond_to?(:to_path)
     assert logger.string.empty?
     assert_equal tmp.path, body.to_path
     body.close
@@ -76,6 +77,7 @@ class TestCloggerToPath < Test::Unit::TestCase
 
     status, headers, body = app.call(@req)
     assert_instance_of(Clogger::ToPath, body)
+    assert body.respond_to?(:to_path)
     assert logger.string.empty?
     assert_equal "/dev/fd/#{tmp.fileno}", body.to_path
     body.close
@@ -108,6 +110,7 @@ class TestCloggerToPath < Test::Unit::TestCase
 
     status, headers, body = app.call(@req)
     assert_instance_of(Clogger::ToPath, body)
+    assert body.respond_to?(:to_path)
     body.to_path
     assert_kind_of IO, tmp.instance_variable_get(:@to_io_called)
     assert logger.string.empty?
