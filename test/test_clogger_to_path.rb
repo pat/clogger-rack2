@@ -31,6 +31,14 @@ class TestCloggerToPath < Test::Unit::TestCase
     }
   end
 
+  def check_body(body)
+    assert body.respond_to?(:to_path)
+    assert body.respond_to?("to_path")
+
+    assert ! body.respond_to?(:to_Path)
+    assert ! body.respond_to?("to_Path")
+  end
+
   def test_wraps_to_path
     logger = StringIO.new
     tmp = Tempfile.new('')
@@ -49,8 +57,8 @@ class TestCloggerToPath < Test::Unit::TestCase
     end.to_app
 
     status, headers, body = app.call(@req)
-    assert_instance_of(Clogger::ToPath, body)
-    assert body.respond_to?(:to_path)
+    assert_instance_of(Clogger, body)
+    check_body(body)
     assert logger.string.empty?
     assert_equal tmp.path, body.to_path
     body.close
@@ -76,8 +84,8 @@ class TestCloggerToPath < Test::Unit::TestCase
     end.to_app
 
     status, headers, body = app.call(@req)
-    assert_instance_of(Clogger::ToPath, body)
-    assert body.respond_to?(:to_path)
+    assert_instance_of(Clogger, body)
+    check_body(body)
     assert logger.string.empty?
     assert_equal "/dev/fd/#{tmp.fileno}", body.to_path
     body.close
@@ -109,8 +117,9 @@ class TestCloggerToPath < Test::Unit::TestCase
     end.to_app
 
     status, headers, body = app.call(@req)
-    assert_instance_of(Clogger::ToPath, body)
-    assert body.respond_to?(:to_path)
+    assert_instance_of(Clogger, body)
+    check_body(body)
+
     body.to_path
     assert_kind_of IO, tmp.instance_variable_get(:@to_io_called)
     assert logger.string.empty?
@@ -135,6 +144,8 @@ class TestCloggerToPath < Test::Unit::TestCase
     end.to_app
     status, headers, body = app.call(@req)
     assert_instance_of(Clogger, body)
+    assert ! body.respond_to?(:to_path)
+    assert ! body.respond_to?("to_path")
     assert logger.string.empty?
     body.close
     assert ! logger.string.empty?

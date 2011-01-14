@@ -40,15 +40,6 @@ class Clogger
     :request_uri => 7
   }
 
-  # proxy class to avoid clobbering the +to_path+ optimization when
-  # using static files
-  class ToPath < Struct.new(:clogger)
-    def each(&block); clogger.each(&block); end
-    def close; clogger.close; end
-
-    # to_path is defined in Clogger::Pure or the C extension
-  end
-
 private
 
   CGI_ENV = Regexp.new('\A\$(' <<

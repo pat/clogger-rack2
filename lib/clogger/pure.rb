@@ -43,7 +43,6 @@ class Clogger
       wbody.status = status
       wbody.headers = headers
       wbody.body = body
-      wbody = Clogger::ToPath.new(wbody) if body.respond_to?(:to_path)
       return [ status, headers, wbody ]
     end
     log(env, status, headers)
@@ -75,6 +74,19 @@ class Clogger
 
   def fileno
     @logger.respond_to?(:fileno) ? @logger.fileno : nil
+  end
+
+  def respond_to?(m)
+    :close == m.to_sym || @body.respond_to?(m)
+  end
+
+  def to_path
+    rv = @body.to_path
+    # try to avoid unnecessary path lookups with to_io.stat instead of
+    # File.size
+    @body_bytes_sent =
+           @body.respond_to?(:to_io) ? @body.to_io.stat.size : File.size(rv)
+    rv
   end
 
 private
@@ -151,17 +163,4 @@ private
       end
     }.join('')
   end
-
-  class ToPath
-    def to_path
-      rv = (body = clogger.body).to_path
-
-      # try to avoid unnecessary path lookups with to_io.stat instead of
-      # File.stat
-      clogger.body_bytes_sent =
-        (body.respond_to?(:to_io) ? body.to_io.stat : File.stat(rv)).size
-      rv
-    end
-  end
-
 end

@@ -124,8 +124,8 @@ static ID sq_brace_id;
 static ID new_id;
 static ID to_path_id;
 static ID to_io_id;
+static ID respond_to_id;
 static VALUE cClogger;
-static VALUE cToPath;
 static VALUE mFormat;
 static VALUE cHeaderHash;
 
@@ -807,9 +807,6 @@ static VALUE clogger_call(VALUE self, VALUE env)
 
 		rv = ccall(c, env);
 		assert(!OBJ_FROZEN(rv) && "frozen response array");
-
-		if (rb_respond_to(c->body, to_path_id))
-			self = rb_funcall(cToPath, new_id, 1, self);
 		rb_ary_store(rv, 2, self);
 
 		return rv;
@@ -840,25 +837,24 @@ static VALUE clogger_init_copy(VALUE clone, VALUE orig)
 
 #define CONST_GLOBAL_STR(val) CONST_GLOBAL_STR2(val, #val)
 
-#ifdef RSTRUCT_PTR
-#  define ToPath_clogger(tp) RSTRUCT_PTR(tp)[0]
-#else
-static ID clogger_id;
-#  define ToPath_clogger(tp) rb_funcall(tp,clogger_id,0)
-#endif
+static VALUE respond_to(VALUE self, VALUE method)
+{
+	struct clogger *c = clogger_get(self);
+	ID id = rb_to_id(method);
+
+	if (close_id == id)
+		return Qtrue;
+	return rb_respond_to(c->body, id);
+}
 
 static VALUE to_path(VALUE self)
 {
-	VALUE my_clogger = ToPath_clogger(self);
-	struct clogger *c = clogger_get(my_clogger);
+	struct clogger *c = clogger_get(self);
 	VALUE path = rb_funcall(c->body, to_path_id, 0);
 	struct stat sb;
 	int rv;
 	unsigned devfd;
-	const char *cpath;
-
-	Check_Type(path, T_STRING);
-	cpath = RSTRING_PTR(path);
+	const char *cpath = StringValuePtr(path);
 
 	/* try to avoid an extra path lookup  */
 	if (rb_respond_to(c->body, to_io_id))
@@ -898,6 +894,7 @@ void Init_clogger_ext(void)
 	new_id = rb_intern("new");
 	to_path_id = rb_intern("to_path");
 	to_io_id = rb_intern("to_io");
+	respond_to_id = rb_intern("respond_to?");
 	cClogger = rb_define_class("Clogger", rb_cObject);
 	mFormat = rb_define_module_under(cClogger, "Format");
 	rb_define_alloc_func(cClogger, clogger_alloc);
@@ -909,6 +906,8 @@ void Init_clogger_ext(void)
 	rb_define_method(cClogger, "fileno", clogger_fileno, 0);
 	rb_define_method(cClogger, "wrap_body?", clogger_wrap_body, 0);
 	rb_define_method(cClogger, "reentrant?", clogger_reentrant, 0);
+	rb_define_method(cClogger, "to_path", to_path, 0);
+	rb_define_method(cClogger, "respond_to?", respond_to, 1);
 	CONST_GLOBAL_STR(REMOTE_ADDR);
 	CONST_GLOBAL_STR(HTTP_X_FORWARDED_FOR);
 	CONST_GLOBAL_STR(REQUEST_METHOD);
@@ -927,9 +926,4 @@ void Init_clogger_ext(void)
 	tmp = rb_const_get(rb_cObject, rb_intern("Rack"));
 	tmp = rb_const_get(tmp, rb_intern("Utils"));
 	cHeaderHash = rb_const_get(tmp, rb_intern("HeaderHash"));
-	cToPath = rb_const_get(cClogger, rb_intern("ToPath"));
-	rb_define_method(cToPath, "to_path", to_path, 0);
-#ifndef RSTRUCT_PTR
-	clogger_id = rb_intern("clogger");
-#endif
 }
