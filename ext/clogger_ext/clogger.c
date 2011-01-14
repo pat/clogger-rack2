@@ -13,10 +13,37 @@
 #ifdef HAVE_FCNTL_H
 #  include <fcntl.h>
 #endif
-#define _POSIX_C_SOURCE 200112L
+#ifndef _POSIX_C_SOURCE
+#  define _POSIX_C_SOURCE 200112L
+#endif
 #include <time.h>
 #include "ruby_1_9_compat.h"
 #include "broken_system_compat.h"
+
+/*
+ * Availability of a monotonic clock needs to be detected at runtime
+ * since we could've been built on a different system than we're run
+ * under.
+ */
+static clockid_t hopefully_CLOCK_MONOTONIC = CLOCK_MONOTONIC;
+
+static void check_clock(void)
+{
+	struct timespec now;
+
+	/* we can't check this reliably at compile time */
+	if (clock_gettime(CLOCK_MONOTONIC, &now) == 0)
+		return;
+
+	if (clock_gettime(CLOCK_REALTIME, &now) == 0) {
+		hopefully_CLOCK_MONOTONIC = CLOCK_REALTIME;
+		rb_warn("CLOCK_MONOTONIC not available, "
+			"falling back to CLOCK_REALTIME");
+	}
+	rb_warn("clock_gettime() totally broken, " \
+	        "falling back to pure Ruby Clogger");
+	rb_raise(rb_eLoadError, "clock_gettime() broken");
+}
 
 static void clock_diff(struct timespec *a, const struct timespec *b)
 {
@@ -346,11 +373,8 @@ static void append_ts(struct clogger *c, const VALUE *op, struct timespec *ts)
 static void append_request_time_fmt(struct clogger *c, const VALUE *op)
 {
 	struct timespec now;
-	int r = clock_gettime(CLOCK_MONOTONIC, &now);
 
-	if (unlikely(r != 0))
-		rb_sys_fail("clock_gettime(CLOCK_MONONTONIC)");
-
+	clock_gettime(hopefully_CLOCK_MONOTONIC, &now);
 	clock_diff(&now, &c->ts_start);
 	append_ts(c, op, &now);
 }
@@ -724,7 +748,7 @@ static VALUE ccall(struct clogger *c, VALUE env)
 {
 	VALUE rv;
 
-	clock_gettime(CLOCK_MONOTONIC, &c->ts_start);
+	clock_gettime(hopefully_CLOCK_MONOTONIC, &c->ts_start);
 	c->env = env;
 	c->cookies = Qfalse;
 	rv = rb_funcall(c->app, call_id, 1, env);
@@ -858,6 +882,8 @@ static VALUE to_path(VALUE self)
 void Init_clogger_ext(void)
 {
 	VALUE tmp;
+
+	check_clock();
 
 	ltlt_id = rb_intern("<<");
 	call_id = rb_intern("call");

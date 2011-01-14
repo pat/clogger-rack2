@@ -3,11 +3,15 @@
  * without clock_gettime() or CLOCK_MONOTONIC
  */
 
+#ifndef HAVE_TYPE_CLOCKID_T
+typedef clockid_t int;
+#endif
+
 #ifndef HAVE_CLOCK_GETTIME
 #  ifndef CLOCK_REALTIME
 #    define CLOCK_REALTIME 0 /* whatever */
 #  endif
-static int fake_clock_gettime(int clk_id, struct timespec *res)
+static int fake_clock_gettime(clockid_t clk_id, struct timespec *res)
 {
 	struct timeval tv;
 	int r = gettimeofday(&tv, NULL);
@@ -21,7 +25,12 @@ static int fake_clock_gettime(int clk_id, struct timespec *res)
 #  define clock_gettime fake_clock_gettime
 #endif /* broken systems w/o clock_gettime() */
 
-/* UGH */
-#ifndef _POSIX_MONOTONIC_CLOCK
-#  define CLOCK_MONOTONIC CLOCK_REALTIME
+/*
+ * UGH
+ * CLOCK_MONOTONIC is not guaranteed to be a macro, either
+ */
+#ifndef CLOCK_MONOTONIC
+#  if (!defined(_POSIX_MONOTONIC_CLOCK) || !defined(HAVE_CLOCK_MONOTONIC))
+#    define CLOCK_MONOTONIC CLOCK_REALTIME
+#  endif
 #endif

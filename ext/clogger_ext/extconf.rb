@@ -13,10 +13,11 @@ begin
     have_macro('O_NONBLOCK', %w(unistd.h fcntl.h))
   end
 
-  unless have_macro('CLOCK_MONOTONIC', 'time.h', '-D_POSIX_C_SOURCE=200112L')
-    $CPPFLAGS += '-D_POSIX_SOURCE_200112L'
+  $CPPFLAGS += '-D_POSIX_C_SOURCE=200112L'
+  unless have_macro('CLOCK_MONOTONIC', 'time.h')
     have_func('CLOCK_MONOTONIC', 'time.h')
   end
+  have_type('clockid_t', 'time.h')
   have_func('clock_gettime', 'time.h')
   have_func('localtime_r', 'time.h') or raise "localtime_r needed"
   have_func('gmtime_r', 'time.h') or raise "gmtime_r needed"
