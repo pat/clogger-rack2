@@ -25,11 +25,13 @@
  * since we could've been built on a different system than we're run
  * under.
  */
-static clockid_t hopefully_CLOCK_MONOTONIC = CLOCK_MONOTONIC;
+static clockid_t hopefully_CLOCK_MONOTONIC;
 
 static void check_clock(void)
 {
 	struct timespec now;
+
+	hopefully_CLOCK_MONOTONIC = CLOCK_MONOTONIC;
 
 	/* we can't check this reliably at compile time */
 	if (clock_gettime(CLOCK_MONOTONIC, &now) == 0)

@@ -4,7 +4,7 @@
  */
 
 #ifndef HAVE_TYPE_CLOCKID_T
-typedef clockid_t int;
+typedef int clockid_t;
 #endif
 
 #ifndef HAVE_CLOCK_GETTIME
