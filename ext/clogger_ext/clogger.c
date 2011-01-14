@@ -818,7 +818,7 @@ static VALUE clogger_call(VALUE self, VALUE env)
 	return rv;
 }
 
-/* :nodoc */
+/* :nodoc: */
 static VALUE clogger_init_copy(VALUE clone, VALUE orig)
 {
 	struct clogger *a = clogger_get(orig);
@@ -837,6 +837,14 @@ static VALUE clogger_init_copy(VALUE clone, VALUE orig)
 
 #define CONST_GLOBAL_STR(val) CONST_GLOBAL_STR2(val, #val)
 
+/*
+ * call-seq:
+ *   clogger.respond_to?(:to_path) => true or false
+ *   clogger.respond_to?(:close)  => true
+ *
+ * used to delegate +:to_path+ checks for Rack webservers that optimize
+ * static file serving
+ */
 static VALUE respond_to(VALUE self, VALUE method)
 {
 	struct clogger *c = clogger_get(self);
@@ -847,6 +855,12 @@ static VALUE respond_to(VALUE self, VALUE method)
 	return rb_respond_to(c->body, id);
 }
 
+/*
+ * call-seq:
+ *   clogger.to_path
+ *
+ * used to proxy +:to_path+ method calls to the wrapped response body.
+ */
 static VALUE to_path(VALUE self)
 {
 	struct clogger *c = clogger_get(self);
