@@ -11,14 +11,6 @@
 #ifndef RARRAY_LEN
 #  define RARRAY_LEN(s) (RARRAY(s)->len)
 #endif
-#ifndef RUBINIUS
-#  ifndef RSTRUCT_PTR
-#    define RSTRUCT_PTR(s) (RSTRUCT(s)->ptr)
-#  endif
-#  ifndef RSTRUCT_LEN
-#    define RSTRUCT_LEN(s) (RSTRUCT(s)->len)
-#  endif
-#endif
 
 #ifndef HAVE_RB_STR_SET_LEN
 /* this is taken from Ruby 1.8.7, 1.8.6 may not have it */
