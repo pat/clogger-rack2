@@ -442,10 +442,11 @@ static void append_request_length(struct clogger *c)
 	}
 }
 
-static void append_time(struct clogger *c, enum clogger_opcode op, VALUE fmt)
+static void
+append_time(struct clogger *c, enum clogger_opcode op, VALUE fmt, VALUE buf)
 {
-	/* you'd have to be a moron to use formats this big... */
-	char buf[sizeof("Saturday, November 01, 1970, 00:00:00 PM +0000")];
+	char *buf_ptr = RSTRING_PTR(buf);
+	size_t buf_size = RSTRING_LEN(buf) + 1; /* "\0" */
 	size_t nr;
 	struct tm tmp;
 	time_t t = time(NULL);
@@ -457,11 +458,9 @@ static void append_time(struct clogger *c, enum clogger_opcode op, VALUE fmt)
 	else
 		assert(0 && "unknown op");
 
-	nr = strftime(buf, sizeof(buf), RSTRING_PTR(fmt), &tmp);
-	if (nr == 0 || nr == sizeof(buf))
-		rb_str_buf_append(c->log_buf, g_dash);
-	else
-		rb_str_buf_cat(c->log_buf, buf, nr);
+	nr = strftime(buf_ptr, buf_size, RSTRING_PTR(fmt), &tmp);
+	assert(nr < buf_size && "time format too small!");
+	rb_str_buf_cat(c->log_buf, buf_ptr, nr);
 }
 
 static void append_pid(struct clogger *c)
@@ -581,7 +580,7 @@ static VALUE cwrite(struct clogger *c)
 			break;
 		case CL_OP_TIME_LOCAL:
 		case CL_OP_TIME_UTC:
-			append_time(c, opcode, op[1]);
+			append_time(c, opcode, op[1], op[2]);
 			break;
 		case CL_OP_REQUEST_TIME:
 			append_request_time_fmt(c, op);
@@ -818,6 +817,23 @@ static VALUE clogger_call(VALUE self, VALUE env)
 	return rv;
 }
 
+static void duplicate_buffers(VALUE ops)
+{
+	long i = RARRAY_LEN(ops);
+	VALUE *ary = RARRAY_PTR(ops);
+
+	for ( ; --i >= 0; ary++) {
+		VALUE *op = RARRAY_PTR(*ary);
+		enum clogger_opcode opcode = FIX2INT(op[0]);
+
+		if (opcode == CL_OP_TIME_LOCAL || opcode == CL_OP_TIME_UTC) {
+			Check_Type(op[2], T_STRING);
+			op[2] = rb_str_dup(op[2]);
+			rb_str_modify(op[2]); /* trigger copy-on-write */
+		}
+	}
+}
+
 /* :nodoc: */
 static VALUE clogger_init_copy(VALUE clone, VALUE orig)
 {
@@ -826,6 +842,7 @@ static VALUE clogger_init_copy(VALUE clone, VALUE orig)
 
 	memcpy(b, a, sizeof(struct clogger));
 	init_buffers(b);
+	duplicate_buffers(b->fmt_ops);
 
 	return clone;
 }

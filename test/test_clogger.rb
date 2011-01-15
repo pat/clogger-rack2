@@ -156,12 +156,13 @@ class TestClogger < Test::Unit::TestCase
         '$env{rack.url_scheme}' \
         "\n")
     }
+    longest_day = Time.at(26265600).strftime('%d/%b/%Y:%H:%M:%S %z')
     expect = [
       [ Clogger::OP_REQUEST, "REMOTE_ADDR" ],
       [ Clogger::OP_LITERAL, " - " ],
       [ Clogger::OP_REQUEST, "REMOTE_USER" ],
       [ Clogger::OP_LITERAL, " [" ],
-      [ Clogger::OP_TIME_LOCAL, '%d/%b/%Y:%H:%M:%S %z' ],
+      [ Clogger::OP_TIME_LOCAL, '%d/%b/%Y:%H:%M:%S %z', longest_day ],
       [ Clogger::OP_LITERAL, "] \"" ],
       [ Clogger::OP_SPECIAL, Clogger::SPECIAL_VARS[:request] ],
       [ Clogger::OP_LITERAL, "\" "],
@@ -676,5 +677,16 @@ class TestClogger < Test::Unit::TestCase
     assert_nothing_raised { body.each { |x| } ; body.close }
     assert s[-1].to_f >= 0.100
     assert s[-1].to_f <= 0.110
+  end
+
+  def test_insanely_long_time_format
+    s = []
+    app = lambda { |env| [200, [], [] ] }
+    fmt = '%Y' * 100
+    expect = Time.now.utc.strftime(fmt) << "\n"
+    assert_equal 100 * 4 + 1, expect.size
+    cl = Clogger.new(app, :logger => s, :format => "$time_utc{#{fmt}}")
+    status, headers, body = cl.call(@req)
+    assert_equal expect, s[0]
   end
 end

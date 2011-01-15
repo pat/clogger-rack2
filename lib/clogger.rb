@@ -57,6 +57,7 @@ private
                         \w*))?([^$]*)/x
 
   def compile_format(str, opt = {})
+    longest_day = Time.at(26265600) # "Saturday, November 01, 1970 00:00:00"
     rv = []
     opt ||= {}
     str.scan(SCAN).each do |pre,tok,post|
@@ -83,9 +84,11 @@ private
         when /\A\$sent_http_(\w+)\z/
           rv << [ OP_RESPONSE, $1.downcase.tr('_','-') ]
         when /\A\$time_local\{([^\}]+)\}\z/
-          rv << [ OP_TIME_LOCAL, $1 ]
+          fmt = $1
+          rv << [ OP_TIME_LOCAL, fmt, longest_day.strftime(fmt) ]
         when /\A\$time_utc\{([^\}]+)\}\z/
-          rv << [ OP_TIME_UTC, $1 ]
+          fmt = $1
+          rv << [ OP_TIME_UTC, fmt, longest_day.strftime(fmt) ]
         when /\A\$time\{(\d+)\}\z/
           rv << [ OP_TIME, *usec_conv_pair(tok, $1.to_i) ]
         when /\A\$request_time\{(\d+)\}\z/
