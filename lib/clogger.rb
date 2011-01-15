@@ -23,6 +23,7 @@ class Clogger
   ALIASES = {
     '$request_time' => '$request_time{3}',
     '$time_local' => '$time_local{%d/%b/%Y:%H:%M:%S %z}',
+    '$time_utc' => '$time_utc{%d/%b/%Y:%H:%M:%S %z}',
     '$msec' => '$time{3}',
     '$usec' => '$time{6}',
     '$http_content_length' => '$content_length',

@@ -689,4 +689,12 @@ class TestClogger < Test::Unit::TestCase
     status, headers, body = cl.call(@req)
     assert_equal expect, s[0]
   end
+
+  def test_time_utc
+    s = []
+    app = lambda { |env| [200, [], [] ] }
+    cl = Clogger.new(app, :logger => s, :format => "$time_utc")
+    status, headers, body = cl.call(@req)
+    assert %r!\A\d+/\w+/\d{4}:\d\d:\d\d:\d\d \+0000\n\z! =~ s[0], s.inspect
+  end
 end
