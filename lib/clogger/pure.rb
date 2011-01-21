@@ -10,7 +10,7 @@ class Clogger
 
   def initialize(app, opts = {})
     # trigger autoload to avoid thread-safety issues later on
-    Rack::Utils::HeaderHash.new({})
+    Rack::Utils::HeaderHash
 
     @app = app
     @logger = opts[:logger]
