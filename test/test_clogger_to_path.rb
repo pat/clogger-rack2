@@ -120,7 +120,8 @@ class TestCloggerToPath < Test::Unit::TestCase
     assert_instance_of(Clogger, body)
     check_body(body)
 
-    body.to_path
+    assert_equal tmp.path, body.to_path
+    assert_nothing_raised { body.to_io }
     assert_kind_of IO, tmp.instance_variable_get(:@to_io_called)
     assert logger.string.empty?
     assert ! tmp.closed?

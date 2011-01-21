@@ -908,6 +908,24 @@ static VALUE to_path(VALUE self)
 	return path;
 }
 
+/*
+ * call-seq:
+ *   clogger.to_io
+ *
+ * used to proxy +:to_io+ method calls to the wrapped response body.
+ */
+static VALUE to_io(VALUE self)
+{
+	struct clogger *c = clogger_get(self);
+	struct stat sb;
+	VALUE io = rb_convert_type(c->body, T_FILE, "IO", "to_io");
+
+	if (fstat(my_fileno(io), &sb) == 0)
+		c->body_bytes_sent = sb.st_size;
+
+	return io;
+}
+
 void Init_clogger_ext(void)
 {
 	VALUE tmp;
@@ -938,6 +956,7 @@ void Init_clogger_ext(void)
 	rb_define_method(cClogger, "wrap_body?", clogger_wrap_body, 0);
 	rb_define_method(cClogger, "reentrant?", clogger_reentrant, 0);
 	rb_define_method(cClogger, "to_path", to_path, 0);
+	rb_define_method(cClogger, "to_io", to_io, 0);
 	rb_define_method(cClogger, "respond_to?", respond_to, 1);
 	CONST_GLOBAL_STR(REMOTE_ADDR);
 	CONST_GLOBAL_STR(HTTP_X_FORWARDED_FOR);

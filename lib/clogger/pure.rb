@@ -89,6 +89,10 @@ class Clogger
     rv
   end
 
+  def to_io
+    @body.to_io
+  end
+
 private
 
   def byte_xs(s)
