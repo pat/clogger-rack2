@@ -140,6 +140,10 @@ private
     end
   end
 
+private
+  def method_missing(*args, &block)
+    body.__send__(*args, &block)
+  end
   # :startdoc:
 end
 

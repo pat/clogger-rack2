@@ -697,4 +697,32 @@ class TestClogger < Test::Unit::TestCase
     status, headers, body = cl.call(@req)
     assert %r!\A\d+/\w+/\d{4}:\d\d:\d\d:\d\d \+0000\n\z! =~ s[0], s.inspect
   end
+
+  def test_method_missing
+    s = []
+    body = []
+    def body.foo_bar(foo)
+      [ foo.to_s ]
+    end
+    def body.noargs
+      :hello
+    end
+    def body.omg(&block)
+      yield :PONIES
+    end
+    app = lambda { |env| [200, [], body ] }
+    cl = Clogger.new(app, :logger => s, :format => '$body_bytes_sent')
+    status, headers, body = cl.call(@req)
+    assert_nothing_raised do
+      body.each { |x| s << x }
+      body.close
+    end
+    assert_equal "0\n", s[0], s.inspect
+    assert_kind_of Clogger, body
+    assert_equal %w(1), body.foo_bar(1)
+    assert_equal :hello, body.noargs
+    body.omg { |x| s << x }
+    assert_equal :PONIES, s[1]
+    assert_equal 2, s.size
+  end
 end

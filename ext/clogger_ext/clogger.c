@@ -926,6 +926,12 @@ static VALUE to_io(VALUE self)
 	return io;
 }
 
+/* :nodoc: */
+static VALUE body(VALUE self)
+{
+	return clogger_get(self)->body;
+}
+
 void Init_clogger_ext(void)
 {
 	VALUE tmp;
@@ -958,6 +964,7 @@ void Init_clogger_ext(void)
 	rb_define_method(cClogger, "to_path", to_path, 0);
 	rb_define_method(cClogger, "to_io", to_io, 0);
 	rb_define_method(cClogger, "respond_to?", respond_to, 1);
+	rb_define_method(cClogger, "body", body, 0);
 	CONST_GLOBAL_STR(REMOTE_ADDR);
 	CONST_GLOBAL_STR(HTTP_X_FORWARDED_FOR);
 	CONST_GLOBAL_STR(REQUEST_METHOD);
