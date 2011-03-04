@@ -607,6 +607,11 @@ static VALUE cwrite(struct clogger *c)
 	return Qnil;
 }
 
+static VALUE clogger_write(VALUE self)
+{
+	return cwrite(clogger_get(self));
+}
+
 static void init_logger(struct clogger *c, VALUE path)
 {
 	ID id;
@@ -686,18 +691,20 @@ static VALUE clogger_init(int argc, VALUE *argv, VALUE self)
 	return self;
 }
 
-static VALUE body_iter_i(VALUE str, VALUE memop)
+static VALUE body_iter_i(VALUE str, VALUE self)
 {
-	off_t *len = (off_t *)memop;
+	struct clogger *c = clogger_get(self);
 
 	str = rb_obj_as_string(str);
-	*len += RSTRING_LEN(str);
+	c->body_bytes_sent += RSTRING_LEN(str);
 
 	return rb_yield(str);
 }
 
-static VALUE body_close(struct clogger *c)
+static VALUE body_close(VALUE self)
 {
+	struct clogger *c = clogger_get(self);
+
 	if (rb_respond_to(c->body, close_id))
 		return rb_funcall(c->body, close_id, 0);
 	return Qnil;
@@ -717,7 +724,7 @@ static VALUE clogger_each(VALUE self)
 
 	rb_need_block();
 	c->body_bytes_sent = 0;
-	rb_iterate(rb_each, c->body, body_iter_i, (VALUE)&c->body_bytes_sent);
+	rb_iterate(rb_each, c->body, body_iter_i, self);
 
 	return self;
 }
@@ -732,9 +739,8 @@ static VALUE clogger_each(VALUE self)
  */
 static VALUE clogger_close(VALUE self)
 {
-	struct clogger *c = clogger_get(self);
 
-	return rb_ensure(body_close, (VALUE)c, cwrite, (VALUE)c);
+	return rb_ensure(body_close, self, clogger_write, self);
 }
 
 /* :nodoc: */
