@@ -5,8 +5,8 @@ rescue LoadError
   warn "rake-compiler not available, cross compiling disabled"
 end
 
-cgit_url = "http://git.bogomips.org/cgit/clogger.git"
-git_url = 'git://git.bogomips.org/clogger.git'
+cgit_url = "http://bogomips.org/clogger.git"
+git_url = 'git://bogomips.org/clogger.git'
 
 desc "post news article to rubyforge"
 task :publish_news do
