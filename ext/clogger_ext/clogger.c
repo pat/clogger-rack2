@@ -888,23 +888,25 @@ static VALUE respond_to(VALUE self, VALUE method)
 static VALUE to_path(VALUE self)
 {
 	struct clogger *c = clogger_get(self);
-	VALUE path = rb_funcall(c->body, to_path_id, 0);
 	struct stat sb;
 	int rv;
-	unsigned devfd;
-	const char *cpath = StringValueCStr(path);
+	VALUE path = rb_funcall(c->body, to_path_id, 0);
 
 	/* try to avoid an extra path lookup  */
-	if (rb_respond_to(c->body, to_io_id))
+	if (rb_respond_to(c->body, to_io_id)) {
 		rv = fstat(my_fileno(c->body), &sb);
-	/*
-	 * Rainbows! can use "/dev/fd/%u" in to_path output to avoid
-	 * extra open() syscalls, too.
-	 */
-	else if (sscanf(cpath, "/dev/fd/%u", &devfd) == 1)
-		rv = fstat((int)devfd, &sb);
-	else
-		rv = stat(cpath, &sb);
+	} else {
+		const char *cpath = StringValueCStr(path);
+		unsigned devfd;
+		/*
+		 * Rainbows! can use "/dev/fd/%u" in to_path output to avoid
+		 * extra open() syscalls, too.
+		 */
+		if (sscanf(cpath, "/dev/fd/%u", &devfd) == 1)
+			rv = fstat((int)devfd, &sb);
+		else
+			rv = stat(cpath, &sb);
+	}
 
 	/*
 	 * calling this method implies the web server will bypass
