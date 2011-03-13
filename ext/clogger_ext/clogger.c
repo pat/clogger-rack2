@@ -891,7 +891,7 @@ static VALUE to_path(VALUE self)
 	struct stat sb;
 	int rv;
 	unsigned devfd;
-	const char *cpath = StringValuePtr(path);
+	const char *cpath = StringValueCStr(path);
 
 	/* try to avoid an extra path lookup  */
 	if (rb_respond_to(c->body, to_io_id))
