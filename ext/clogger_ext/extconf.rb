@@ -22,6 +22,8 @@ begin
   have_func('localtime_r', 'time.h') or raise "localtime_r needed"
   have_func('gmtime_r', 'time.h') or raise "gmtime_r needed"
   have_func('rb_str_set_len', 'ruby.h')
+  have_func('rb_thread_blocking_region', 'ruby.h')
+  have_func('rb_thread_io_blocking_region', 'ruby.h')
   dir_config('clogger_ext')
   create_makefile('clogger_ext')
 rescue Object => err

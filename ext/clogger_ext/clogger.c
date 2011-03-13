@@ -19,6 +19,7 @@
 #include <time.h>
 #include "ruby_1_9_compat.h"
 #include "broken_system_compat.h"
+#include "blocking_helpers.h"
 
 /*
  * Availability of a monotonic clock needs to be detected at runtime
