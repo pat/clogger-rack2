@@ -640,8 +640,8 @@ static void init_logger(struct clogger *c, VALUE path)
  *
  * Creates a new Clogger object that wraps +app+.  +:logger+ may
  * be any object that responds to the "<<" method with a string argument.
- * If +:logger:+ is a string, it will be treated as a path to a
- * File that will be opened in append mode.
+ * Instead of +:logger+, +:path+ may be specified to be a :path of a File
+ * that will be opened in append mode.
  */
 static VALUE clogger_init(int argc, VALUE *argv, VALUE self)
 {
