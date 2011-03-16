@@ -55,6 +55,7 @@ private
                         \w*))?([^$]*)/x
 
   def compile_format(str, opt = {})
+    str = Clogger::Format.const_get(str) if Symbol === str
     longest_day = Time.at(26265600) # "Saturday, November 01, 1970 00:00:00"
     rv = []
     opt ||= {}

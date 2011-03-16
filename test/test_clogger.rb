@@ -37,6 +37,11 @@ class TestClogger < Test::Unit::TestCase
     assert_raise(ArgumentError) { Clogger.new }
   end
 
+  def test_clogger_sym_format
+    app = lambda { |env| [ 0, {}, [] ] }
+    tmp = Clogger.new app, :format => :Rack_1_0, :logger => $stderr
+  end
+
   def test_init_stderr
     cl = Clogger.new(lambda { |env| [ 0, {}, [] ] }, :logger => $stderr)
     assert_kind_of(Integer, cl.fileno)
