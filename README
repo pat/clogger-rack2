@@ -73,6 +73,7 @@ that receives a "<<" method:
   (including response body iteration).  PRECISION defaults to 3
   (milliseconds) if not specified but may be specified anywhere from
   0(seconds) to 6(microseconds).
+* $time_iso8601 - time in ISO 8601 format
 * $time_local, $time_local{FORMAT} - current local time, FORMAT defaults to
   "%d/%b/%Y:%H:%M:%S %z" but accepts any strftime(3)-compatible format
 * $time_utc, $time_utc{FORMAT} - like $time_local, except with UTC

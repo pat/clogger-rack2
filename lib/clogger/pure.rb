@@ -135,6 +135,8 @@ private
       env['REMOTE_ADDR'] || '-'
     when :pid
       $$.to_s
+    when :time_iso8601
+      Time.now.iso8601
     else
       raise "EDOOFUS #{special_nr}"
     end

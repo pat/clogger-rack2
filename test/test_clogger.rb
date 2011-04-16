@@ -1,6 +1,7 @@
 # -*- encoding: binary -*-
 $stderr.sync = $stdout.sync = true
 require "test/unit"
+require "time"
 require "date"
 require "stringio"
 require "tempfile"
@@ -701,6 +702,41 @@ class TestClogger < Test::Unit::TestCase
     cl = Clogger.new(app, :logger => s, :format => "$time_utc")
     status, headers, body = cl.call(@req)
     assert %r!\A\d+/\w+/\d{4}:\d\d:\d\d:\d\d \+0000\n\z! =~ s[0], s.inspect
+  end
+
+  def test_time_iso8601
+    s = []
+    app = lambda { |env| [200, [], [] ] }
+    cl = Clogger.new(app, :logger => s, :format => "$time_iso8601")
+    status, headers, body = cl.call(@req)
+    t = Time.parse(s[0])
+    assert_equal t.iso8601, s[0].strip
+  end
+
+  def test_time_iso8601_pst8pdt
+    orig = ENV["TZ"]
+    ENV["TZ"] = "PST8PDT"
+    s = []
+    app = lambda { |env| [200, [], [] ] }
+    cl = Clogger.new(app, :logger => s, :format => "$time_iso8601")
+    status, headers, body = cl.call(@req)
+    t = Time.parse(s[0])
+    assert_equal t.iso8601, s[0].strip
+    ensure
+      ENV["TZ"] = orig
+  end
+
+  def test_time_iso8601_utc
+    orig = ENV["TZ"]
+    ENV["TZ"] = "UTC"
+    s = []
+    app = lambda { |env| [200, [], [] ] }
+    cl = Clogger.new(app, :logger => s, :format => "$time_iso8601")
+    status, headers, body = cl.call(@req)
+    t = Time.parse(s[0])
+    assert_equal t.iso8601, s[0].strip
+    ensure
+      ENV["TZ"] = orig
   end
 
   def test_method_missing

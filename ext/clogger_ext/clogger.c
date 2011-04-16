@@ -17,6 +17,7 @@
 #  define _POSIX_C_SOURCE 200112L
 #endif
 #include <time.h>
+#include <stdlib.h>
 #include "ruby_1_9_compat.h"
 #include "broken_system_compat.h"
 #include "blocking_helpers.h"
@@ -89,7 +90,8 @@ enum clogger_special {
 	CL_SP_response_length,
 	CL_SP_ip,
 	CL_SP_pid,
-	CL_SP_request_uri
+	CL_SP_request_uri,
+	CL_SP_time_iso8601,
 };
 
 struct clogger {
@@ -443,6 +445,37 @@ static void append_request_length(struct clogger *c)
 	}
 }
 
+static long gmtoffset(struct tm *tm)
+{
+	time_t t = time(NULL);
+
+	tzset();
+	localtime_r(&t, tm);
+#if defined(HAVE_STRUCT_TM_TM_GMTOFF)
+	return tm->tm_gmtoff / 60;
+#else
+	return -(tm->tm_isdst ? timezone - 3600 : timezone) / 60;
+#endif
+}
+
+static void append_time_iso8601(struct clogger *c)
+{
+	char buf[sizeof("1970-01-01T00:00:00+00:00")];
+	struct tm tm;
+	int nr;
+	long gmtoff = gmtoffset(&tm);
+
+	nr = snprintf(buf, sizeof(buf),
+	              "%4d-%02d-%02dT%02d:%02d:%02d%c%02d:%02d",
+	              tm.tm_year + 1900, tm.tm_mon + 1,
+	              tm.tm_mday, tm.tm_hour,
+	              tm.tm_min, tm.tm_sec,
+	              gmtoff < 0 ? '-' : '+',
+	              abs(gmtoff / 60), abs(gmtoff % 60));
+	assert(nr == (sizeof(buf) - 1) && "snprintf fail");
+	rb_str_buf_cat(c->log_buf, buf, sizeof(buf) - 1);
+}
+
 static void
 append_time(struct clogger *c, enum clogger_opcode op, VALUE fmt, VALUE buf)
 {
@@ -547,6 +580,9 @@ static void special_var(struct clogger *c, enum clogger_special var)
                 break;
 	case CL_SP_request_uri:
 		append_request_uri(c);
+		break;
+	case CL_SP_time_iso8601:
+		append_time_iso8601(c);
 	}
 }
 
