@@ -73,10 +73,10 @@ that receives a "<<" method:
   (including response body iteration).  PRECISION defaults to 3
   (milliseconds) if not specified but may be specified anywhere from
   0(seconds) to 6(microseconds).
-* $time_iso8601 - time in ISO 8601 format
-* $time_local, $time_local{FORMAT} - current local time, FORMAT defaults to
-  "%d/%b/%Y:%H:%M:%S %z" but accepts any strftime(3)-compatible format
-* $time_utc, $time_utc{FORMAT} - like $time_local, except with UTC
+* $time_iso8601 - current local time in ISO 8601 format,
+  e.g. "1970-01-01T00:00:00+00:00"
+* $time_local - current local time in Apache log format,
+  e.g. "01/Jan/1970:00:00:00 +0000"
 * $usec - current time in seconds.microseconds since the Epoch
 * $msec - current time in seconds.milliseconds since the Epoch
 * $body_bytes_sent - bytes in the response body (Apache: %B)
