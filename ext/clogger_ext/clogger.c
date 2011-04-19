@@ -92,6 +92,8 @@ enum clogger_special {
 	CL_SP_pid,
 	CL_SP_request_uri,
 	CL_SP_time_iso8601,
+	CL_SP_time_local,
+	CL_SP_time_utc
 };
 
 struct clogger {
@@ -445,7 +447,7 @@ static void append_request_length(struct clogger *c)
 	}
 }
 
-static long gmtoffset(struct tm *tm)
+static long local_gmtoffset(struct tm *tm)
 {
 	time_t t = time(NULL);
 
@@ -463,7 +465,7 @@ static void append_time_iso8601(struct clogger *c)
 	char buf[sizeof("1970-01-01T00:00:00+00:00")];
 	struct tm tm;
 	int nr;
-	long gmtoff = gmtoffset(&tm);
+	long gmtoff = local_gmtoffset(&tm);
 
 	nr = snprintf(buf, sizeof(buf),
 	              "%4d-%02d-%02dT%02d:%02d:%02d%c%02d:%02d",
@@ -472,6 +474,44 @@ static void append_time_iso8601(struct clogger *c)
 	              tm.tm_min, tm.tm_sec,
 	              gmtoff < 0 ? '-' : '+',
 	              abs(gmtoff / 60), abs(gmtoff % 60));
+	assert(nr == (sizeof(buf) - 1) && "snprintf fail");
+	rb_str_buf_cat(c->log_buf, buf, sizeof(buf) - 1);
+}
+
+static const char months[] = "Jan\0Feb\0Mar\0Apr\0May\0Jun\0"
+                             "Jul\0Aug\0Sep\0Oct\0Nov\0Dec";
+
+static void append_time_local(struct clogger *c)
+{
+	char buf[sizeof("01/Jan/1970:00:00:00 +0000")];
+	struct tm tm;
+	int nr;
+	long gmtoff = local_gmtoffset(&tm);
+
+	nr = snprintf(buf, sizeof(buf),
+	              "%02d/%s/%d:%02d:%02d:%02d %c%02d%02d",
+	              tm.tm_mday, months + (tm.tm_mon * sizeof("Jan")),
+	              tm.tm_year + 1900, tm.tm_hour,
+	              tm.tm_min, tm.tm_sec,
+	              gmtoff < 0 ? '-' : '+',
+	              abs(gmtoff / 60), abs(gmtoff % 60));
+	assert(nr == (sizeof(buf) - 1) && "snprintf fail");
+	rb_str_buf_cat(c->log_buf, buf, sizeof(buf) - 1);
+}
+
+static void append_time_utc(struct clogger *c)
+{
+	char buf[sizeof("01/Jan/1970:00:00:00 +0000")];
+	struct tm tm;
+	int nr;
+	time_t t = time(NULL);
+
+	gmtime_r(&t, &tm);
+	nr = snprintf(buf, sizeof(buf),
+	              "%02d/%s/%d:%02d:%02d:%02d +0000",
+	              tm.tm_mday, months + (tm.tm_mon * sizeof("Jan")),
+	              tm.tm_year + 1900, tm.tm_hour,
+	              tm.tm_min, tm.tm_sec);
 	assert(nr == (sizeof(buf) - 1) && "snprintf fail");
 	rb_str_buf_cat(c->log_buf, buf, sizeof(buf) - 1);
 }
@@ -583,6 +623,12 @@ static void special_var(struct clogger *c, enum clogger_special var)
 		break;
 	case CL_SP_time_iso8601:
 		append_time_iso8601(c);
+		break;
+	case CL_SP_time_local:
+		append_time_local(c);
+		break;
+	case CL_SP_time_utc:
+		append_time_utc(c);
 	}
 }
 

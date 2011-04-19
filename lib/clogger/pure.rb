@@ -137,6 +137,18 @@ private
       $$.to_s
     when :time_iso8601
       Time.now.iso8601
+    when :time_local
+      t = Time.now
+      off = t.utc_offset
+      sign = off < 0 ? '-' : '+'
+      sprintf("%02d/%s/%d:%02d:%02d:%02d #{sign}%02d%02d",
+              t.mday, Time::RFC2822_MONTH_NAME[t.mon - 1],
+              t.year, t.hour, t.min, t.sec, *(off.abs / 60).divmod(60))
+    when :time_utc
+      t = Time.now.utc
+      sprintf("%02d/%s/%d:%02d:%02d:%02d +0000",
+              t.mday, Time::RFC2822_MONTH_NAME[t.mon - 1],
+              t.year, t.hour, t.min, t.sec)
     else
       raise "EDOOFUS #{special_nr}"
     end

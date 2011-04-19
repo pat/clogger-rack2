@@ -18,6 +18,8 @@ class TestClogger < Test::Unit::TestCase
   include Clogger::Format
 
   def setup
+    @tz = ENV["TZ"]
+    @nginx_fmt = "%d/%b/%Y:%H:%M:%S %z"
     @req = {
       "REQUEST_METHOD" => "GET",
       "HTTP_VERSION" => "HTTP/1.0",
@@ -28,6 +30,10 @@ class TestClogger < Test::Unit::TestCase
       "rack.input" => File.open('/dev/null', 'rb'),
       "REMOTE_ADDR" => 'home',
     }
+  end
+
+  def teardown
+    ENV["TZ"] = @tz
   end
 
   def test_init_basic
@@ -162,13 +168,12 @@ class TestClogger < Test::Unit::TestCase
         '$env{rack.url_scheme}' \
         "\n")
     }
-    longest_day = Time.at(26265600).strftime('%d/%b/%Y:%H:%M:%S %z')
     expect = [
       [ Clogger::OP_REQUEST, "REMOTE_ADDR" ],
       [ Clogger::OP_LITERAL, " - " ],
       [ Clogger::OP_REQUEST, "REMOTE_USER" ],
       [ Clogger::OP_LITERAL, " [" ],
-      [ Clogger::OP_TIME_LOCAL, '%d/%b/%Y:%H:%M:%S %z', longest_day ],
+      [ Clogger::OP_SPECIAL, Clogger::SPECIAL_VARS[:time_local] ],
       [ Clogger::OP_LITERAL, "] \"" ],
       [ Clogger::OP_SPECIAL, Clogger::SPECIAL_VARS[:request] ],
       [ Clogger::OP_LITERAL, "\" "],
@@ -714,7 +719,6 @@ class TestClogger < Test::Unit::TestCase
   end
 
   def test_time_iso8601_pst8pdt
-    orig = ENV["TZ"]
     ENV["TZ"] = "PST8PDT"
     s = []
     app = lambda { |env| [200, [], [] ] }
@@ -722,12 +726,9 @@ class TestClogger < Test::Unit::TestCase
     status, headers, body = cl.call(@req)
     t = Time.parse(s[0])
     assert_equal t.iso8601, s[0].strip
-    ensure
-      ENV["TZ"] = orig
   end
 
   def test_time_iso8601_utc
-    orig = ENV["TZ"]
     ENV["TZ"] = "UTC"
     s = []
     app = lambda { |env| [200, [], [] ] }
@@ -735,8 +736,36 @@ class TestClogger < Test::Unit::TestCase
     status, headers, body = cl.call(@req)
     t = Time.parse(s[0])
     assert_equal t.iso8601, s[0].strip
-    ensure
-      ENV["TZ"] = orig
+  end
+
+  def test_time_local
+    s = []
+    app = lambda { |env| [200, [], [] ] }
+    cl = Clogger.new(app, :logger => s, :format => "$time_local")
+    status, headers, body = cl.call(@req)
+    t = DateTime.strptime(s[0].strip, @nginx_fmt)
+    assert_equal t.strftime(@nginx_fmt), s[0].strip
+  end
+
+  def test_time_local_pst8pdt
+    orig = ENV["TZ"]
+    ENV["TZ"] = "PST8PDT"
+    s = []
+    app = lambda { |env| [200, [], [] ] }
+    cl = Clogger.new(app, :logger => s, :format => "$time_local")
+    status, headers, body = cl.call(@req)
+    t = DateTime.strptime(s[0].strip, @nginx_fmt)
+    assert_equal t.strftime(@nginx_fmt), s[0].strip
+  end
+
+  def test_time_local_utc
+    ENV["TZ"] = "UTC"
+    s = []
+    app = lambda { |env| [200, [], [] ] }
+    cl = Clogger.new(app, :logger => s, :format => "$time_local")
+    status, headers, body = cl.call(@req)
+    t = DateTime.strptime(s[0].strip, @nginx_fmt)
+    assert_equal t.strftime(@nginx_fmt), s[0].strip
   end
 
   def test_method_missing

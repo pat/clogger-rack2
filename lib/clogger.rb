@@ -19,8 +19,6 @@ class Clogger
   # support nginx variables that are less customizable than our own
   ALIASES = {
     '$request_time' => '$request_time{3}',
-    '$time_local' => '$time_local{%d/%b/%Y:%H:%M:%S %z}',
-    '$time_utc' => '$time_utc{%d/%b/%Y:%H:%M:%S %z}',
     '$msec' => '$time{3}',
     '$usec' => '$time{6}',
     '$http_content_length' => '$content_length',
@@ -37,6 +35,8 @@ class Clogger
     :pid => 6, # getpid()
     :request_uri => 7,
     :time_iso8601 => 8,
+    :time_local => 9,
+    :time_utc => 10,
   }
 
 private
