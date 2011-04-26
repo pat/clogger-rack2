@@ -25,5 +25,6 @@ Gem::Specification.new do |s|
   s.add_development_dependency(%q<wrongdoc>, "~> 1.0")
   s.extensions = %w(ext/clogger_ext/extconf.rb)
 
-  # s.license = "LGPLv2.1+" # disabled for compatibility with older RubyGems
+  # disabled for compatibility with older RubyGems
+  # s.license = "LGPLv2.1 LGPLv3"
 end
