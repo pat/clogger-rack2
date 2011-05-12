@@ -28,6 +28,7 @@ class TestClogger < Test::Unit::TestCase
       "QUERY_STRING" => "goodbye=true",
       "rack.errors" => $stderr,
       "rack.input" => File.open('/dev/null', 'rb'),
+      "rack.url_scheme" => "http",
       "REMOTE_ADDR" => 'home',
     }
   end
@@ -794,5 +795,17 @@ class TestClogger < Test::Unit::TestCase
     body.omg { |x| s << x }
     assert_equal :PONIES, s[1]
     assert_equal 2, s.size
+  end
+
+  def test_full_uri
+    s = []
+    format = '"$request_method ' \
+             '$env{rack.url_scheme}://$http_host$request_uri $http_version"'
+    app = lambda { |env| [200, [], [] ] }
+    cl = Clogger.new(app, :logger => s, :format => format)
+    @req["HTTP_HOST"] = "example.com"
+    status, headers, body = cl.call(@req)
+    expect = "\"GET http://example.com/hello?goodbye=true HTTP/1.0\"\n"
+    assert_equal [ expect ], s
   end
 end
