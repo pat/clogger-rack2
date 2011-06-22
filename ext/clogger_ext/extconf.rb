@@ -1,5 +1,6 @@
 begin
   require 'mkmf'
+  $CPPFLAGS += " -D_BSD_SOURCE=1 "
 
   # XXX let me know if this works for you...
   if ! defined?(RUBY_VERSION) || RUBY_VERSION !~ /\A1\.[89]\./
@@ -21,6 +22,7 @@ begin
   have_func('clock_gettime', 'time.h')
   have_func('localtime_r', 'time.h') or raise "localtime_r needed"
   have_func('gmtime_r', 'time.h') or raise "gmtime_r needed"
+  have_struct_member('struct tm', 'tm_gmtoff', 'time.h')
   have_func('rb_str_set_len', 'ruby.h')
   have_func('rb_thread_blocking_region', 'ruby.h')
   have_func('rb_thread_io_blocking_region', 'ruby.h')

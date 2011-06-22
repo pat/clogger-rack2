@@ -18,6 +18,7 @@
 #endif
 #include <time.h>
 #include <stdlib.h>
+#include <stdio.h>		/* snprintf */
 #include "ruby_1_9_compat.h"
 #include "broken_system_compat.h"
 #include "blocking_helpers.h"
@@ -453,7 +454,12 @@ static long local_gmtoffset(struct tm *tm)
 
 	tzset();
 	localtime_r(&t, tm);
-#if defined(HAVE_STRUCT_TM_TM_GMTOFF)
+
+/*
+ * HAVE_STRUCT_TM_TM_GMTOFF may be defined in Ruby headers
+ * HAVE_ST_TM_GMTOFF is defined ourselves.
+ */
+#if defined(HAVE_STRUCT_TM_TM_GMTOFF) || defined(HAVE_ST_TM_GMTOFF)
 	return tm->tm_gmtoff / 60;
 #else
 	return -(tm->tm_isdst ? timezone - 3600 : timezone) / 60;
