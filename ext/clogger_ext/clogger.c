@@ -890,10 +890,12 @@ static VALUE clogger_call(VALUE self, VALUE env)
 	env = rb_check_convert_type(env, T_HASH, "Hash", "to_hash");
 
 	if (c->wrap_body) {
+		/* XXX: we assume the existence of the GVL here: */
 		if (c->reentrant < 0) {
 			VALUE tmp = rb_hash_aref(env, g_rack_multithread);
 			c->reentrant = Qfalse == tmp ? 0 : 1;
 		}
+
 		if (c->reentrant) {
 			self = rb_obj_dup(self);
 			c = clogger_get(self);
