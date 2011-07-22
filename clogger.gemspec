@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.authors = ["cloggers"]
   s.date = Time.now.utc.strftime('%Y-%m-%d')
   s.description = readme_description
-  s.email = %q{clogger@librelist.com}
+  s.email = %q{clogger@librelist.org}
   s.extra_rdoc_files = extra_rdoc_files(manifest)
   s.files = manifest
   s.rdoc_options = rdoc_options
