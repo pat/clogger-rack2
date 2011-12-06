@@ -424,9 +424,9 @@ class TestClogger < Test::Unit::TestCase
     cl = Clogger.new(app,
         :format => '$cookie_foo $cookie_quux',
         :logger => str)
-    req = @req.merge('HTTP_COOKIE' => "foo=bar;quux=h&m")
+    req = @req.merge('HTTP_COOKIE' => "foo=bar;quux=h%7F&m")
     status, headers, body = cl.call(req)
-    assert_equal "bar h&m\n", str.string
+    assert_equal "bar h\\x7F&m\n", str.string
   end
 
   def test_bogus_app_response

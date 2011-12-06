@@ -572,8 +572,7 @@ static void append_cookie(struct clogger *c, VALUE key)
 		cookie = g_dash;
 	} else {
 		cookie = rb_hash_aref(c->cookies, key);
-		if (NIL_P(cookie))
-			cookie = g_dash;
+		cookie = NIL_P(cookie) ? g_dash : byte_xs(cookie);
 	}
 	rb_str_buf_append(c->log_buf, cookie);
 }

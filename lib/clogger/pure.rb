@@ -177,7 +177,7 @@ private
         t = Time.now
         time_format(t.to_i, t.usec, op[1], op[2])
       when OP_COOKIE
-        (env['rack.request.cookie_hash'][op[1]] rescue "-") || "-"
+        (byte_xs(env['rack.request.cookie_hash'][op[1]]) rescue "-") || "-"
       else
         raise "EDOOFUS #{op.inspect}"
       end
