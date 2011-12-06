@@ -390,6 +390,15 @@ class TestClogger < Test::Unit::TestCase
     assert_equal "a\\x0Ab\n", str.string
   end
 
+  def test_escape_crazy_delete
+    str = StringIO.new
+    app = lambda { |env| [302, {}, [] ] }
+    cl = Clogger.new(app, :logger => str, :format => "$http_cookie")
+    @req["HTTP_COOKIE"] = "a\x7f\xff"
+    cl.call(@req)
+    assert_equal "a\\x7F\\xFF\n", str.string
+  end
+
   def test_request_uri_fallback
     str = StringIO.new
     app = lambda { |env| [ 200, {}, [] ] }

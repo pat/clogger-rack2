@@ -161,7 +161,7 @@ static void init_buffers(struct clogger *c)
 static inline int need_escape(unsigned c)
 {
 	assert(c <= 0xff);
-	return !!(c == '\'' || c == '"' || c <= 0x1f);
+	return !!(c == '\'' || c == '"' || c <= 0x1f || c >= 0x7f);
 }
 
 /* we are encoding-agnostic, clients can send us all sorts of junk */

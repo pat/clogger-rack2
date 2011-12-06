@@ -98,7 +98,9 @@ private
   def byte_xs(s)
     s = s.dup
     s.force_encoding(Encoding::BINARY) if defined?(Encoding::BINARY)
-    s.gsub!(/(['"\x00-\x1f])/) { |x| "\\x#{$1.unpack('H2').first.upcase}" }
+    s.gsub!(/(['"\x00-\x1f\x7f-\xff])/) do |x|
+      "\\x#{$1.unpack('H2').first.upcase}"
+    end
     s
   end
 
