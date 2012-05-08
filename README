@@ -33,7 +33,7 @@ is customizable so you can specify exactly which fields to log.
   # ENV['CLOGGER_PURE'] = '1' # uncomment to disable C extension
   require "clogger"
   use Clogger,
-      :format => Clogger::Format::Combined,
+      :format => :Combined,
       :path => "/path/to/log",
       :reentrant => true
   run YourApplication.new
@@ -42,7 +42,7 @@ If you're using Rails 2.3.x or later, in your config/environment.rb
 somewhere inside the "Rails::Initializer.run do |config|" block:
 
   config.middleware.use 'Clogger',
-      :format => Clogger::Format::Combined,
+      :format => :Combined,
       :path => "/path/to/log",
       :reentrant => false
 
