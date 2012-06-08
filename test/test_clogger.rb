@@ -481,6 +481,26 @@ class TestClogger < Test::Unit::TestCase
     assert r.object_id != body.object_id
   end
 
+  # Rack::BodyProxy does this thing with method_missing
+  # This test fails under MRI 1.9.1 and 1.9.2, but works under 1.9.3
+  def test_each_with_external_block
+    foo = Object.new
+    foo.instance_variable_set(:@body, ["BodyProxy"])
+    def foo.method_missing(*args, &block)
+      @body.__send__(*args, &block)
+    end
+    app = lambda { |env| [302, [], foo] }
+    str = StringIO.new
+    cl = Clogger.new(app, :logger => str, :format => '$body_bytes_sent')
+    r = nil
+    assert_nothing_raised { r = cl.call(@req) }
+    body = []
+    r[2].each { |x| body << x }
+    r[2].close
+    assert_equal %w(BodyProxy), body
+    assert_equal "9\n", str.string
+  end
+
   def test_http_09_request
     str = StringIO.new
     app = lambda { |env| [302, [ %w(a) ], []] }
