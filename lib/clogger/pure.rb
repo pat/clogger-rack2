@@ -161,7 +161,7 @@ private
   end
 
   def log(env, status, headers)
-    (@logger || env['rack.errors']) << @fmt_ops.map { |op|
+    str = @fmt_ops.map { |op|
       case op[0]
       when OP_LITERAL; op[1]
       when OP_REQUEST; byte_xs(env[op[1]] || "-")
@@ -182,5 +182,13 @@ private
         raise "EDOOFUS #{op.inspect}"
       end
     }.join('')
+
+    l = @logger
+    if l
+      l << str
+    else
+      env['rack.errors'].write(str)
+    end
+    nil
   end
 end

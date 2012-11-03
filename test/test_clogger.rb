@@ -837,4 +837,21 @@ class TestClogger < Test::Unit::TestCase
     expect = "\"GET http://example.com/hello?goodbye=true HTTP/1.0\"\n"
     assert_equal [ expect ], s
   end
+
+  def test_lint_error_wrapper
+    require 'rack/lobster'
+    @req["SERVER_NAME"] = "FOO"
+    @req["SERVER_PORT"] = "666"
+    @req["rack.version"] = [1,1]
+    @req["rack.multithread"] = true
+    @req["rack.multiprocess"] = true
+    @req["rack.run_once"] = false
+    app = Rack::ContentLength.new(Rack::ContentType.new(Rack::Lobster.new))
+    cl = Clogger.new(app, format: :Combined)
+    @req["rack.errors"] = err = StringIO.new
+    status, headers, body = r = Rack::Lint.new(cl).call(@req)
+    body.each { |x| assert_kind_of String, x.to_str }
+    body.close # might raise here
+    assert_match(%r{GET /hello}, err.string)
+  end
 end

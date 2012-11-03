@@ -119,6 +119,7 @@ struct clogger {
 	int reentrant; /* tri-state, -1:auto, 1/0 true/false */
 };
 
+static ID write_id;
 static ID ltlt_id;
 static ID call_id;
 static ID each_id;
@@ -687,9 +688,12 @@ static VALUE cwrite(struct clogger *c)
 	} else {
 		VALUE logger = c->logger;
 
-		if (NIL_P(logger))
+		if (NIL_P(logger)) {
 			logger = rb_hash_aref(c->env, g_rack_errors);
-		rb_funcall(logger, ltlt_id, 1, dst);
+                        rb_funcall(logger, write_id, 1, dst);
+                } else {
+			rb_funcall(logger, ltlt_id, 1, dst);
+		}
 	}
 
 	return Qnil;
@@ -1036,6 +1040,7 @@ void Init_clogger_ext(void)
 
 	check_clock();
 
+	write_id = rb_intern("write");
 	ltlt_id = rb_intern("<<");
 	call_id = rb_intern("call");
 	each_id = rb_intern("each");
