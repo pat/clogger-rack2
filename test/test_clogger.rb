@@ -847,7 +847,7 @@ class TestClogger < Test::Unit::TestCase
     @req["rack.multiprocess"] = true
     @req["rack.run_once"] = false
     app = Rack::ContentLength.new(Rack::ContentType.new(Rack::Lobster.new))
-    cl = Clogger.new(app, format: :Combined)
+    cl = Clogger.new(app, :format => :Combined)
     @req["rack.errors"] = err = StringIO.new
     status, headers, body = r = Rack::Lint.new(cl).call(@req)
     body.each { |x| assert_kind_of String, x.to_str }
