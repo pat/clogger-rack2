@@ -2,11 +2,6 @@ begin
   require 'mkmf'
   $CPPFLAGS += " -D_BSD_SOURCE=1 "
 
-  # XXX let me know if this works for you...
-  if ! defined?(RUBY_VERSION) || RUBY_VERSION !~ /\A1\.[89]\./
-    raise "Invalid RUBY_VERSION for C extension"
-  end
-
   have_header('ruby.h') or raise "ruby.h header not found!"
 
   if have_header('fcntl.h')
