@@ -365,12 +365,12 @@ static void append_body_bytes_sent(struct clogger *c)
 	rb_str_buf_cat(c->log_buf, buf, nr);
 }
 
-static void append_ts(struct clogger *c, const VALUE *op, struct timespec *ts)
+static void append_ts(struct clogger *c, VALUE op, struct timespec *ts)
 {
 	char buf[sizeof(".000000") + ((sizeof(ts->tv_sec) * 8) / 3)];
 	int nr;
-	char *fmt = RSTRING_PTR(op[1]);
-	int ndiv = NUM2INT(op[2]);
+	char *fmt = RSTRING_PTR(rb_ary_entry(op, 1));
+	int ndiv = NUM2INT(rb_ary_entry(op, 2));
 	int usec = ts->tv_nsec / 1000;
 
 	nr = snprintf(buf, sizeof(buf), fmt,
@@ -379,7 +379,7 @@ static void append_ts(struct clogger *c, const VALUE *op, struct timespec *ts)
 	rb_str_buf_cat(c->log_buf, buf, nr);
 }
 
-static void append_request_time_fmt(struct clogger *c, const VALUE *op)
+static void append_request_time_fmt(struct clogger *c, VALUE op)
 {
 	struct timespec now;
 
@@ -388,7 +388,7 @@ static void append_request_time_fmt(struct clogger *c, const VALUE *op)
 	append_ts(c, op, &now);
 }
 
-static void append_time_fmt(struct clogger *c, const VALUE *op)
+static void append_time_fmt(struct clogger *c, VALUE op)
 {
 	struct timespec now;
 	int r = clock_gettime(CLOCK_REALTIME, &now);
@@ -641,35 +641,38 @@ static void special_var(struct clogger *c, enum clogger_special var)
 static VALUE cwrite(struct clogger *c)
 {
 	const VALUE ops = c->fmt_ops;
-	const VALUE *ary = RARRAY_PTR(ops);
-	long i = RARRAY_LEN(ops);
+	long i;
+	long len = RARRAY_LEN(ops);
 	VALUE dst = c->log_buf;
 
 	rb_str_set_len(dst, 0);
 
-	for (; --i >= 0; ary++) {
-		const VALUE *op = RARRAY_PTR(*ary);
-		enum clogger_opcode opcode = FIX2INT(op[0]);
+	for (i = 0; i < len; i++) {
+		VALUE op = rb_ary_entry(ops, i);
+		enum clogger_opcode opcode = FIX2INT(rb_ary_entry(op, 0));
+		VALUE op1 = rb_ary_entry(op, 1);
 
 		switch (opcode) {
 		case CL_OP_LITERAL:
-			rb_str_buf_append(dst, op[1]);
+			rb_str_buf_append(dst, op1);
 			break;
 		case CL_OP_REQUEST:
-			append_request_env(c, op[1]);
+			append_request_env(c, op1);
 			break;
 		case CL_OP_RESPONSE:
-			append_response(c, op[1]);
+			append_response(c, op1);
 			break;
 		case CL_OP_SPECIAL:
-			special_var(c, FIX2INT(op[1]));
+			special_var(c, FIX2INT(op1));
 			break;
 		case CL_OP_EVAL:
-			append_eval(c, op[1]);
+			append_eval(c, op1);
 			break;
 		case CL_OP_TIME_LOCAL:
-		case CL_OP_TIME_UTC:
-			append_time(c, opcode, op[1], op[2]);
+		case CL_OP_TIME_UTC: {
+			VALUE arg2 = rb_ary_entry(op, 2);
+			append_time(c, opcode, op1, arg2);
+		}
 			break;
 		case CL_OP_REQUEST_TIME:
 			append_request_time_fmt(c, op);
@@ -678,7 +681,7 @@ static VALUE cwrite(struct clogger *c)
 			append_time_fmt(c, op);
 			break;
 		case CL_OP_COOKIE:
-			append_cookie(c, op[1]);
+			append_cookie(c, op1);
 			break;
 		}
 	}
@@ -852,16 +855,15 @@ static VALUE ccall(struct clogger *c, VALUE env)
 	c->cookies = Qfalse;
 	rv = rb_funcall(c->app, call_id, 1, env);
 	if (TYPE(rv) == T_ARRAY && RARRAY_LEN(rv) == 3) {
-		VALUE *tmp = RARRAY_PTR(rv);
+		c->status = rb_ary_entry(rv, 0);
+		c->headers = rb_ary_entry(rv, 1);
+		c->body = rb_ary_entry(rv, 2);
 
-		c->status = tmp[0];
-		c->headers = tmp[1];
-		c->body = tmp[2];
-
-		rv = rb_ary_new4(3, tmp);
+		rv = rb_ary_dup(rv);
 		if (c->need_resp &&
-                    ! rb_obj_is_kind_of(tmp[1], cHeaderHash)) {
-			c->headers = rb_funcall(cHeaderHash, new_id, 1, tmp[1]);
+                    ! rb_obj_is_kind_of(c->headers, cHeaderHash)) {
+			c->headers = rb_funcall(cHeaderHash, new_id, 1,
+			                        c->headers);
 			rb_ary_store(rv, 1, c->headers);
 		}
 	} else {
@@ -919,17 +921,19 @@ static VALUE clogger_call(VALUE self, VALUE env)
 
 static void duplicate_buffers(VALUE ops)
 {
-	long i = RARRAY_LEN(ops);
-	VALUE *ary = RARRAY_PTR(ops);
+	long i;
+	long len = RARRAY_LEN(ops);
 
-	for ( ; --i >= 0; ary++) {
-		VALUE *op = RARRAY_PTR(*ary);
-		enum clogger_opcode opcode = FIX2INT(op[0]);
+	for (i = 0; i < len; i++) {
+		VALUE op = rb_ary_entry(ops, i);
+		enum clogger_opcode opcode = FIX2INT(rb_ary_entry(op, 0));
 
 		if (opcode == CL_OP_TIME_LOCAL || opcode == CL_OP_TIME_UTC) {
-			Check_Type(op[2], T_STRING);
-			op[2] = rb_str_dup(op[2]);
-			rb_str_modify(op[2]); /* trigger copy-on-write */
+			VALUE buf = rb_ary_entry(op, 2);
+			Check_Type(buf, T_STRING);
+			buf = rb_str_dup(buf);
+			rb_str_modify(buf); /* trigger copy-on-write */
+			rb_ary_store(op, 2, buf);
 		}
 	}
 }
