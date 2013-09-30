@@ -14,5 +14,4 @@ test: test-ext test-pure
 ifneq ($(VERSION),)
 release::
 	$(RAKE) publish_news VERSION=$(VERSION)
-	$(RAKE) raa_update VERSION=$(VERSION)
 endif
