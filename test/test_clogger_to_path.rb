@@ -93,43 +93,6 @@ class TestCloggerToPath < Test::Unit::TestCase
     assert_equal "365 200\n", logger.string
   end
 
-  def test_wraps_to_path_to_io
-    logger = StringIO.new
-    tmp = Tempfile.new('')
-    def tmp.to_io
-      @to_io_called = super
-    end
-    def tmp.to_path
-      path
-    end
-    app = Rack::Builder.new do
-      tmp.syswrite(' ' * 365)
-      tmp.sysseek(0)
-      h = {
-        'Content-Length' => '0',
-        'Content-Type' => 'text/plain',
-      }
-      use Clogger,
-        :logger => logger,
-        :reentrant => true,
-        :format => '$body_bytes_sent $status'
-      run lambda { |env| [ 200, h, tmp ] }
-    end.to_app
-
-    status, headers, body = app.call(@req)
-    assert_instance_of(Clogger, body)
-    check_body(body)
-
-    assert_equal tmp.path, body.to_path
-    assert_nothing_raised { body.to_io }
-    assert_kind_of IO, tmp.instance_variable_get(:@to_io_called)
-    assert logger.string.empty?
-    assert ! tmp.closed?
-    body.close
-    assert tmp.closed?
-    assert_equal "365 200\n", logger.string
-  end
-
   def test_does_not_wrap_to_path
     logger = StringIO.new
     app = Rack::Builder.new do

@@ -129,7 +129,6 @@ static ID size_id;
 static ID sq_brace_id;
 static ID new_id;
 static ID to_path_id;
-static ID to_io_id;
 static ID respond_to_id;
 static VALUE cClogger;
 static VALUE mFormat;
@@ -985,22 +984,17 @@ static VALUE to_path(VALUE self)
 	struct stat sb;
 	int rv;
 	VALUE path = rb_funcall(c->body, to_path_id, 0);
+	const char *cpath = StringValueCStr(path);
+	unsigned devfd;
 
-	/* try to avoid an extra path lookup  */
-	if (rb_respond_to(c->body, to_io_id)) {
-		rv = fstat(my_fileno(c->body), &sb);
-	} else {
-		const char *cpath = StringValueCStr(path);
-		unsigned devfd;
-		/*
-		 * Rainbows! can use "/dev/fd/%u" in to_path output to avoid
-		 * extra open() syscalls, too.
-		 */
-		if (sscanf(cpath, "/dev/fd/%u", &devfd) == 1)
-			rv = fstat((int)devfd, &sb);
-		else
-			rv = stat(cpath, &sb);
-	}
+	/*
+	 * Rainbows! can use "/dev/fd/%u" in to_path output to avoid
+	 * extra open() syscalls, too.
+	 */
+	if (sscanf(cpath, "/dev/fd/%u", &devfd) == 1)
+		rv = fstat((int)devfd, &sb);
+	else
+		rv = stat(cpath, &sb);
 
 	/*
 	 * calling this method implies the web server will bypass
@@ -1009,24 +1003,6 @@ static VALUE to_path(VALUE self)
 	 */
 	c->body_bytes_sent = rv == 0 ? sb.st_size : 0;
 	return path;
-}
-
-/*
- * call-seq:
- *   clogger.to_io
- *
- * used to proxy +:to_io+ method calls to the wrapped response body.
- */
-static VALUE to_io(VALUE self)
-{
-	struct clogger *c = clogger_get(self);
-	struct stat sb;
-	VALUE io = rb_convert_type(c->body, T_FILE, "IO", "to_io");
-
-	if (fstat(my_fileno(io), &sb) == 0)
-		c->body_bytes_sent = sb.st_size;
-
-	return io;
 }
 
 /* :nodoc: */
@@ -1051,7 +1027,6 @@ void Init_clogger_ext(void)
 	sq_brace_id = rb_intern("[]");
 	new_id = rb_intern("new");
 	to_path_id = rb_intern("to_path");
-	to_io_id = rb_intern("to_io");
 	respond_to_id = rb_intern("respond_to?");
 	cClogger = rb_define_class("Clogger", rb_cObject);
 	mFormat = rb_define_module_under(cClogger, "Format");
@@ -1065,7 +1040,6 @@ void Init_clogger_ext(void)
 	rb_define_method(cClogger, "wrap_body?", clogger_wrap_body, 0);
 	rb_define_method(cClogger, "reentrant?", clogger_reentrant, 0);
 	rb_define_method(cClogger, "to_path", to_path, 0);
-	rb_define_method(cClogger, "to_io", to_io, 0);
 	rb_define_method(cClogger, "respond_to?", respond_to, 1);
 	rb_define_method(cClogger, "body", body, 0);
 	CONST_GLOBAL_STR(REMOTE_ADDR);

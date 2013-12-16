@@ -82,15 +82,8 @@ class Clogger
 
   def to_path
     rv = @body.to_path
-    # try to avoid unnecessary path lookups with to_io.stat instead of
-    # File.size
-    @body_bytes_sent =
-           @body.respond_to?(:to_io) ? @body.to_io.stat.size : File.size(rv)
+    @body_bytes_sent = File.size(rv)
     rv
-  end
-
-  def to_io
-    @body.to_io
   end
 
 private
