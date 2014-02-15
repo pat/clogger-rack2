@@ -18,22 +18,6 @@ static int my_stat(const char *path, struct stat *buf)
            rb_thread_blocking_region((fn),(data), RUBY_UBF_IO, 0)
 #endif
 
-struct fstat_args { int fd; struct stat *buf; };
-static VALUE ng_fstat(void *ptr)
-{
-	struct fstat_args *a = ptr;
-	return (VALUE)fstat(a->fd, a->buf);
-}
-
-static int my_fstat(int fd, struct stat *buf)
-{
-	struct fstat_args a;
-
-	a.fd = fd;
-	a.buf = buf;
-	return (int)rb_thread_io_blocking_region(ng_fstat, &a, fd);
-}
-
 struct write_args { int fd; const void *buf; size_t count; };
 static VALUE ng_write(void *ptr)
 {
@@ -53,6 +37,5 @@ static ssize_t my_write(int fd, const void *buf, size_t count)
 	return r;
 }
 #  define stat(fd,buf) my_stat((fd),(buf))
-#  define fstat(fd,buf) my_fstat((fd),(buf))
 #  define write(fd,buf,count) my_write((fd),(buf),(count))
 #endif
