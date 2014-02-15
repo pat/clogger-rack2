@@ -170,7 +170,7 @@ static VALUE byte_xs_str(VALUE from)
 {
 	static const char esc[] = "0123456789ABCDEF";
 	unsigned char *new_ptr;
-	unsigned char *ptr = (unsigned char *)RSTRING_PTR(from);
+	const unsigned char *ptr = (const unsigned char *)RSTRING_PTR(from);
 	long len = RSTRING_LEN(from);
 	long new_len = len;
 	VALUE rv;
@@ -188,7 +188,7 @@ static VALUE byte_xs_str(VALUE from)
 
 	rv = rb_str_new(NULL, new_len);
 	new_ptr = (unsigned char *)RSTRING_PTR(rv);
-	ptr = (unsigned char *)RSTRING_PTR(from);
+	ptr = (const unsigned char *)RSTRING_PTR(from);
 	for (; --len >= 0; ptr++) {
 		unsigned c = *ptr;
 
@@ -867,7 +867,7 @@ static VALUE ccall(struct clogger *c, VALUE env)
 			rb_ary_store(rv, 1, c->headers);
 		}
 	} else {
-		volatile VALUE tmp = rb_inspect(rv);
+		VALUE tmp = rb_inspect(rv);
 
 		c->status = INT2FIX(500);
 		c->headers = c->body = rb_ary_new();
@@ -875,6 +875,7 @@ static VALUE ccall(struct clogger *c, VALUE env)
 		rb_raise(rb_eTypeError,
 		         "app response not a 3 element Array: %s",
 			 RSTRING_PTR(tmp));
+		RB_GC_GUARD(tmp);
 	}
 
 	return rv;
