@@ -122,7 +122,6 @@ struct clogger {
 static ID write_id;
 static ID ltlt_id;
 static ID call_id;
-static ID each_id;
 static ID close_id;
 static ID to_i_id;
 static ID to_s_id;
@@ -1045,7 +1044,6 @@ void Init_clogger_ext(void)
 	write_id = rb_intern("write");
 	ltlt_id = rb_intern("<<");
 	call_id = rb_intern("call");
-	each_id = rb_intern("each");
 	close_id = rb_intern("close");
 	to_i_id = rb_intern("to_i");
 	to_s_id = rb_intern("to_s");

@@ -1,5 +1,5 @@
 all::
-RSYNC_DEST := rubyforge.org:/var/www/gforge-projects/clogger/
+RSYNC_DEST := clogger.bogomips.org:/srv/clogger/
 rfproject := clogger
 rfpackage := clogger
 include pkg.mk
