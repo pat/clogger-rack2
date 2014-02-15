@@ -166,10 +166,11 @@ static inline int need_escape(unsigned c)
 }
 
 /* we are encoding-agnostic, clients can send us all sorts of junk */
-static VALUE byte_xs_str(VALUE from)
+static VALUE byte_xs(VALUE obj)
 {
 	static const char esc[] = "0123456789ABCDEF";
 	unsigned char *new_ptr;
+	VALUE from = rb_obj_as_string(obj);
 	const unsigned char *ptr = (const unsigned char *)RSTRING_PTR(from);
 	long len = RSTRING_LEN(from);
 	long new_len = len;
@@ -203,12 +204,8 @@ static VALUE byte_xs_str(VALUE from)
 	}
 	assert(RSTRING_PTR(rv)[RSTRING_LEN(rv)] == '\0');
 
+	RB_GC_GUARD(from);
 	return rv;
-}
-
-static VALUE byte_xs(VALUE from)
-{
-	return byte_xs_str(rb_obj_as_string(from));
 }
 
 static void clogger_mark(void *ptr)
