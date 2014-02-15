@@ -19,6 +19,7 @@ begin
   have_func('gmtime_r', 'time.h') or raise "gmtime_r needed"
   have_struct_member('struct tm', 'tm_gmtoff', 'time.h')
   have_func('rb_str_set_len', 'ruby.h')
+  have_func('rb_thread_call_without_gvl', 'ruby/thread.h')
   have_func('rb_thread_blocking_region', 'ruby.h')
   have_func('rb_thread_io_blocking_region', 'ruby.h')
   create_makefile('clogger_ext')
