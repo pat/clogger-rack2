@@ -91,7 +91,7 @@ that receives a "<<" method:
 
 == REQUIREMENTS
 
-* {Ruby}[http://ruby-lang.org/], {Rack}[http://rack.rubyforge.org/]
+* {Ruby}[http://www.ruby-lang.org/], {Rack}[http://rack.github.io/]
 
 == DEVELOPMENT
 
@@ -118,21 +118,15 @@ requests) go to the mailing list.
 
 Do not send HTML mail or attachments.  Do not top post.
 
-Homepage: http://clogger.rubyforge.org/
+Homepage: http://clogger.bogomips.org/
 
 == INSTALL
 
-For Rubygems users:
+For RubyGems users:
 
   gem install clogger
-
-If you do not use Rubygems, you may also use setup.rb from the tarballs
-on the Rubyforge project page:
-
-* http://rubyforge.org/frs/?group_id=8896
 
 There is an optional C extension that should be compatible with
 MatzRuby.  The extensions should automatically be disabled for users of
 other Ruby implementations, but be sure to let us know if that's not the
-case.  No pre-built binaries are currently distributed, let us know if
-you're interested in helping with the release/support effort.
+case.
