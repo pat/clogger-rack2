@@ -1,6 +1,6 @@
-= \Clogger - configurable request logging for Rack
+= clogger - configurable request logging for Rack
 
-\Clogger is Rack middleware for logging HTTP requests.  The log format
+clogger is Rack middleware for logging HTTP requests.  The log format
 is customizable so you can specify exactly which fields to log.
 
 == FEATURES
@@ -19,7 +19,7 @@ is customizable so you can specify exactly which fields to log.
     all bytes in the range of \x00-\x1F
 
 * multi-instance capable and (optionally) reentrant.  You can use
-  \Clogger in a multi-threaded server, and even multiple Cloggers logging
+  clogger in a multi-threaded server, and even multiple cloggers logging
   to different locations and different formats in the same process.
 
 * Pure Ruby version for non-MRI versions of Ruby (or via CLOGGER_PURE=1
@@ -28,7 +28,7 @@ is customizable so you can specify exactly which fields to log.
 
 == SYNOPSIS
 
-\Clogger may be loaded as Rack middleware in your config.ru:
+clogger may be loaded as Rack middleware in your config.ru:
 
   # ENV['CLOGGER_PURE'] = '1' # uncomment to disable C extension
   require "clogger"
