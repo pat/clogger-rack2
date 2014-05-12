@@ -222,12 +222,11 @@ class TestClogger < Test::Unit::TestCase
     req = @req.merge("HTTP_X_FORWARDED_FOR" => '192.168.1.1')
     status, headers, body = cl.call(req)
     assert_equal "192.168.1.1\n", str.string
-    str.rewind
-    str.truncate(0)
+
+    str = StringIO.new
+    cl = Clogger.new(app, :logger => str, :format => "$ip")
     status, headers, body = cl.call(@req)
     assert_equal "home\n", str.string
-    str.rewind
-    str.truncate(0)
   end
 
   def test_rack_1_0
