@@ -88,6 +88,7 @@ that receives a "<<" method:
 * $pid - process ID of the current process
 * $e{Thread.current} - Thread processing the request
 * $e{Actor.current} - Actor processing the request (Revactor or Rubinius)
+* $env{variable_name} - any Rack environment variable (e.g. rack.url_scheme)
 
 == REQUIREMENTS
 
