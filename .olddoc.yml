@@ -2,5 +2,6 @@
 rdoc_url: http://clogger.bogomips.org/
 cgit_url: http://bogomips.org/clogger.git
 git_url: git://bogomips.org/clogger.git
-public_email: clogger@librelist.org
+public_email: clogger-public@bogomips.org
 private_email: clogger@bogomips.org
+ml_url: http://bogomips.org/clogger-public/

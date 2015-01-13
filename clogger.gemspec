@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.homepage = Olddoc.config['rdoc_url']
   s.authors = ["cloggers"]
   s.description = readme_description
-  s.email = %q{clogger@librelist.org}
+  s.email = %q{clogger@bogomips.org}
   s.extra_rdoc_files = extra_rdoc_files(manifest)
   s.files = manifest
   s.summary = summary
