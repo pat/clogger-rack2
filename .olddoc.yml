@@ -4,4 +4,3 @@ cgit_url: http://bogomips.org/clogger.git
 git_url: git://bogomips.org/clogger.git
 public_email: clogger@librelist.org
 private_email: clogger@bogomips.org
-changelog_since: 0.4.0

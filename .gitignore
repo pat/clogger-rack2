@@ -12,8 +12,7 @@ Makefile
 /local.mk
 /pkg
 /.manifest
-/ChangeLog
-/NEWS
+/NEWS*
 /GIT-VERSION-FILE
 /LATEST
 /tmp
