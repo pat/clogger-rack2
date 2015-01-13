@@ -238,19 +238,18 @@ static struct clogger *clogger_get(VALUE self)
 }
 
 /* only for writing to regular files, not stupid crap like NFS  */
-static void write_full(int fd, const void *buf, size_t count)
+static void write_full(int fd, const char *buf, size_t count)
 {
 	ssize_t r;
-	unsigned long ubuf = (unsigned long)buf;
 
 	while (count > 0) {
-		r = write(fd, (void *)ubuf, count);
+		r = write(fd, buf, count);
 
 		if ((size_t)r == count) { /* overwhelmingly likely */
 			return;
 		} else if (r > 0) {
 			count -= r;
-			ubuf += r;
+			buf += r;
 		} else {
 			if (errno == EINTR || errno == EAGAIN)
 				continue; /* poor souls on NFS and like: */
