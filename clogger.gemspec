@@ -21,5 +21,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency(%q<olddoc>, "~> 1.0")
   s.extensions = %w(ext/clogger_ext/extconf.rb)
 
-  s.licenses = %w(LGPLv2.1+)
+  s.licenses = %w(LGPL-2.1+)
 end
