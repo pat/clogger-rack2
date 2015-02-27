@@ -28,7 +28,7 @@ class Clogger
   end
 
   def call(env)
-    start = Time.now
+    start = mono_now
     resp = @app.call(env)
     unless resp.instance_of?(Array) && resp.size == 3
       log(env, 500, {}, start)
@@ -165,7 +165,7 @@ private
       when OP_TIME_LOCAL; Time.now.strftime(op[1])
       when OP_TIME_UTC; Time.now.utc.strftime(op[1])
       when OP_REQUEST_TIME
-        t = Time.now - start
+        t = mono_now - start
         time_format(t.to_i, (t - t.to_i) * 1000000, op[1], op[2])
       when OP_TIME
         t = Time.now
@@ -184,5 +184,15 @@ private
       env['rack.errors'].write(str)
     end
     nil
+  end
+
+  # favor monotonic clock if possible, and try to use clock_gettime in
+  # more recent Rubies since it generates less garbage
+  if defined?(Process::CLOCK_MONOTONIC)
+    def mono_now; Process.clock_gettime(Process::CLOCK_MONOTONIC); end
+  elsif defined?(Process::CLOCK_REALTIME)
+    def mono_now; Process.clock_gettime(Process::CLOCK_REALTIME); end
+  else
+    def mono_now; Time.now.to_f; end
   end
 end
