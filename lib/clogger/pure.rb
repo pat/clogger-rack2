@@ -6,7 +6,7 @@
 class Clogger
 
   attr_accessor :env, :status, :headers, :body
-  attr_writer :body_bytes_sent
+  attr_writer :body_bytes_sent, :start
 
   def initialize(app, opts = {})
     # trigger autoload to avoid thread-safety issues later on
@@ -28,10 +28,10 @@ class Clogger
   end
 
   def call(env)
-    @start = Time.now
+    start = Time.now
     resp = @app.call(env)
     unless resp.instance_of?(Array) && resp.size == 3
-      log(env, 500, {})
+      log(env, 500, {}, start)
       raise TypeError, "app response not a 3 element Array: #{resp.inspect}"
     end
     status, headers, body = resp
@@ -39,13 +39,14 @@ class Clogger
     if @wrap_body
       @reentrant = env['rack.multithread'] if @reentrant.nil?
       wbody = @reentrant ? self.dup : self
+      wbody.start = start
       wbody.env = env
       wbody.status = status
       wbody.headers = headers
       wbody.body = body
       return [ status, headers, wbody ]
     end
-    log(env, status, headers)
+    log(env, status, headers, start)
     [ status, headers, body ]
   end
 
@@ -60,8 +61,8 @@ class Clogger
 
   def close
     @body.close if @body.respond_to?(:close)
-    ensure
-      log(@env, @status, @headers)
+  ensure
+    log(@env, @status, @headers)
   end
 
   def reentrant?
@@ -153,7 +154,7 @@ private
     format % [ sec, usec / div ]
   end
 
-  def log(env, status, headers)
+  def log(env, status, headers, start = @start)
     str = @fmt_ops.map { |op|
       case op[0]
       when OP_LITERAL; op[1]
@@ -164,7 +165,7 @@ private
       when OP_TIME_LOCAL; Time.now.strftime(op[1])
       when OP_TIME_UTC; Time.now.utc.strftime(op[1])
       when OP_REQUEST_TIME
-        t = Time.now - @start
+        t = Time.now - start
         time_format(t.to_i, (t - t.to_i) * 1000000, op[1], op[2])
       when OP_TIME
         t = Time.now
