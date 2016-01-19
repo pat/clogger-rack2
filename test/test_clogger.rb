@@ -147,6 +147,7 @@ class TestClogger < Test::Unit::TestCase
     req = {
       'HTTP_HOST' => 'example.com:12345',
       'HTTP_COOKIE' => cookie,
+      'REMOTE_USER' => 'foo_user',
     }
     req = @req.merge(req)
     body = cl.call(req).last
@@ -154,6 +155,7 @@ class TestClogger < Test::Unit::TestCase
     body.close
     str = str.string
     assert(str.size > 128)
+    assert_equal 'foo_user', str.split(' ')[2]
     assert_match %r["echo and socat \\o/" "#{cookie}" \d+\.\d{3}], str
     assert_match %r["#{cookie}" \d+\.\d{3} example\.com:12345\n\z], str
   end
