@@ -53,7 +53,7 @@ class Clogger
   def each
     @body_bytes_sent = 0
     @body.each do |part|
-      @body_bytes_sent += Rack::Utils.bytesize(part)
+      @body_bytes_sent += part.bytesize
       yield part
     end
     self
