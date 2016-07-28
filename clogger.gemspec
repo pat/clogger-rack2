@@ -17,8 +17,7 @@ Gem::Specification.new do |s|
   s.test_files = %w(test/test_clogger.rb test/test_clogger_to_path.rb)
 
   # HeaderHash wasn't case-insensitive in old versions
-  s.add_dependency(%q<rack>, ["~> 1.0"])
-  s.add_development_dependency(%q<olddoc>, "~> 1.0")
+  s.add_dependency(%q<rack>, ['>= 1.0', '< 3.0'])
   s.extensions = %w(ext/clogger_ext/extconf.rb)
 
   s.licenses = %w(LGPL-2.1+)
