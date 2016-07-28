@@ -54,6 +54,9 @@ static ssize_t my_write(int fd, const void *buf, size_t count)
 
 	return r;
 }
-#  define stat(path,buf) my_stat((path),(buf))
-#  define write(fd,buf,count) my_write((fd),(buf),(count))
+#  define nogvl_stat(path,buf) my_stat((path),(buf))
+#  define nogvl_write(fd,buf,count) my_write((fd),(buf),(count))
+#else /* !WITHOUT_GVL, for Ruby 1.8 users: */
+#  define nogvl_stat(path,buf) stat((path),(buf))
+#  define nogvl_write(fd,buf,buf) write((fd),(buf),(count))
 #endif /* !WITHOUT_GVL */

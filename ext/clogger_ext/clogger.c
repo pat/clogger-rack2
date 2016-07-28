@@ -243,7 +243,7 @@ static void write_full(int fd, const char *buf, size_t count)
 	ssize_t r;
 
 	while (count > 0) {
-		r = write(fd, buf, count);
+		r = nogvl_write(fd, buf, count);
 
 		if ((size_t)r == count) { /* overwhelmingly likely */
 			return;
@@ -993,7 +993,7 @@ static VALUE to_path(VALUE self)
 	if (sscanf(cpath, "/dev/fd/%u", &devfd) == 1)
 		rv = fstat((int)devfd, &sb);
 	else
-		rv = stat(cpath, &sb);
+		rv = nogvl_stat(cpath, &sb);
 
 	/*
 	 * calling this method implies the web server will bypass
