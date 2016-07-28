@@ -1,5 +1,5 @@
 all::
-RSYNC_DEST := clogger.bogomips.org:/srv/clogger/
+RSYNC_DEST := bogomips.org:/srv/bogomips/clogger/
 rfpackage := clogger
 include pkg.mk
 test-ext:

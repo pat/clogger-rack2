@@ -5,12 +5,12 @@ class Clogger
   # predefined log formats in wide use
   module Format
     # common log format used by Apache:
-    # http://httpd.apache.org/docs/2.2/logs.html
+    # https://httpd.apache.org/docs/2.4/logs.html
     Common = "$remote_addr - $remote_user [$time_local] " \
              '"$request" $status $response_length'
 
     # combined log format used by Apache:
-    # http://httpd.apache.org/docs/2.2/logs.html
+    # https://httpd.apache.org/docs/2.4/logs.html
     Combined = %Q|#{Common} "$http_referer" "$http_user_agent"|
 
     # combined log format used by nginx:

@@ -92,18 +92,18 @@ that receives a "<<" method:
 
 == REQUIREMENTS
 
-* {Ruby}[http://www.ruby-lang.org/], {Rack}[http://rack.github.io/]
+* {Ruby}[https://www.ruby-lang.org/], {Rack}[https://rack.github.io/]
 
 == DEVELOPMENT
 
 The latest development happens in git and is published to the following:
 
-   git://bogomips.org/clogger.git
-   git://repo.or.cz/clogger.git
+   git clone git://bogomips.org/clogger.git
+   git clone git://repo.or.cz/clogger.git
 
 You may also browse and download snapshot tarballs:
 
-* http://bogomips.org/clogger.git (cgit)
+* https://bogomips.org/clogger.git
 * http://repo.or.cz/w/clogger.git (gitweb)
 
 The mailing list (see below) is central for coordination and
@@ -119,7 +119,7 @@ requests) go to the public mailing list.
 
 Do not send HTML mail or attachments.  Do not top post.
 
-Homepage: http://clogger.bogomips.org/
+Homepage: https://bogomips.org/clogger/
 
 == INSTALL
 

@@ -1,7 +1,13 @@
 ---
-rdoc_url: http://clogger.bogomips.org/
-cgit_url: http://bogomips.org/clogger.git
+rdoc_url: https://bogomips.org/clogger/
+cgit_url: https://bogomips.org/clogger.git
 git_url: git://bogomips.org/clogger.git
 public_email: clogger-public@bogomips.org
 private_email: clogger@bogomips.org
-ml_url: http://bogomips.org/clogger-public/
+ml_url:
+- https://bogomips.org/clogger-public/
+- http://ou63pmih66umazou.onion/clogger-public/
+- nntp://news.public-inbox.org/inbox.comp.lang.ruby.clogger
+source_code:
+- git clone git://bogomips.org/clogger.git
+- git clone https://bogomips.org/clogger.git
