@@ -29,6 +29,7 @@
  * under.
  */
 static clockid_t hopefully_CLOCK_MONOTONIC;
+static VALUE mark_ary;
 
 static void check_clock(void)
 {
@@ -949,7 +950,7 @@ static VALUE clogger_init_copy(VALUE clone, VALUE orig)
 
 #define CONST_GLOBAL_STR2(var, val) do { \
 	g_##var = rb_obj_freeze(rb_str_new(val, sizeof(val) - 1)); \
-	rb_global_variable(&g_##var); \
+	rb_ary_push(mark_ary, g_##var); \
 } while (0)
 
 #define CONST_GLOBAL_STR(val) CONST_GLOBAL_STR2(val, #val)
@@ -1015,6 +1016,9 @@ void Init_clogger_ext(void)
 {
 	VALUE tmp;
 
+	mark_ary = rb_ary_new();
+	rb_global_variable(&mark_ary);
+
 	check_clock();
 
 	write_id = rb_intern("write");
@@ -1060,4 +1064,6 @@ void Init_clogger_ext(void)
 	tmp = rb_const_get(rb_cObject, rb_intern("Rack"));
 	tmp = rb_const_get(tmp, rb_intern("Utils"));
 	cHeaderHash = rb_const_get(tmp, rb_intern("HeaderHash"));
+
+	rb_obj_freeze(mark_ary);
 }
