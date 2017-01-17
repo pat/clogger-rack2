@@ -682,6 +682,7 @@ static VALUE cwrite(struct clogger *c)
 
 	if (c->fd >= 0) {
 		write_full(c->fd, RSTRING_PTR(dst), RSTRING_LEN(dst));
+		/* no need for RB_GC_GUARD(dst) here, marked as c->log_buf */
 	} else {
 		VALUE logger = c->logger;
 
