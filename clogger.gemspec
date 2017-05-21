@@ -1,13 +1,9 @@
-require 'olddoc'
-extend Olddoc::Gemspec
-name, summary, title = readme_metadata
-
 Gem::Specification.new do |s|
   s.name = %q{clogger}
   s.version = "2.1.0"
-  s.homepage = Olddoc.config['rdoc_url']
+  s.homepage = "https://github.com/pat/clogger-rack2"
   s.authors = ["cloggers"]
-  s.description = readme_description
+  s.description = "configurable request logging for Rack"
   s.email = %q{clogger@bogomips.org}
   s.extra_rdoc_files = []
   s.files = [
@@ -22,7 +18,7 @@ Gem::Specification.new do |s|
     "lib/clogger/format.rb",
     "lib/clogger/pure.rb"
   ]
-  s.summary = summary
+  s.summary = "configurable request logging for Rack"
   s.test_files = %w(test/test_clogger.rb test/test_clogger_to_path.rb)
 
   # HeaderHash wasn't case-insensitive in old versions
