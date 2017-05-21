@@ -963,8 +963,12 @@ static VALUE clogger_init_copy(VALUE clone, VALUE orig)
  * used to delegate +:to_path+ checks for Rack webservers that optimize
  * static file serving
  */
-static VALUE respond_to(VALUE self, VALUE method)
+static VALUE respond_to(int argc, VALUE *argv, VALUE self)
 {
+	VALUE method, include_all;
+	rb_scan_args(argc, argv, "11", &method, &include_all);
+	if (NIL_P(include_all)) include_all = Qfalse;
+
 	struct clogger *c = clogger_get(self);
 	ID id = rb_to_id(method);
 
@@ -1044,7 +1048,7 @@ void Init_clogger_ext(void)
 	rb_define_method(cClogger, "wrap_body?", clogger_wrap_body, 0);
 	rb_define_method(cClogger, "reentrant?", clogger_reentrant, 0);
 	rb_define_method(cClogger, "to_path", to_path, 0);
-	rb_define_method(cClogger, "respond_to?", respond_to, 1);
+	rb_define_method(cClogger, "respond_to?", respond_to, -1);
 	rb_define_method(cClogger, "body", body, 0);
 	CONST_GLOBAL_STR(REMOTE_ADDR);
 	CONST_GLOBAL_STR(HTTP_X_FORWARDED_FOR);

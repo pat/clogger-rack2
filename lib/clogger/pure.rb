@@ -77,8 +77,8 @@ class Clogger
     @logger.respond_to?(:fileno) ? @logger.fileno : nil
   end
 
-  def respond_to?(m)
-    :close == m.to_sym || @body.respond_to?(m)
+  def respond_to?(method, include_all=false)
+    :close == method.to_sym || @body.respond_to?(method, include_all)
   end
 
   def to_path
