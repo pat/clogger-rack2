@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.name = %q{clogger}
   s.version = ENV["VERSION"].dup
   s.homepage = Olddoc.config['rdoc_url']
-  s.authors = ["cloggers"]
+  s.authors = ["pat@freelancing-gods.com"]
   s.description = readme_description
   s.email = %q{clogger@bogomips.org}
   s.extra_rdoc_files = extra_rdoc_files(manifest)
