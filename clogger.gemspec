@@ -3,7 +3,7 @@ extend Olddoc::Gemspec
 name, summary, title = readme_metadata
 
 Gem::Specification.new do |s|
-  s.name = %q{clogger-rack2}
+  s.name = %q{clogger}
   s.version = "2.1.0"
   s.homepage = Olddoc.config['rdoc_url']
   s.authors = ["cloggers"]
